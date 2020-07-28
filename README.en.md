@@ -20,8 +20,8 @@ public class TestController{
 
 	@PostMapping("/rpc")
 	public Object rpc() {
-		Request<CheckPermissionEntity> build = Request.post("/auth/oauth2/check").body(new CheckPermissionEntity());
-		PurseAccountAssetEntity response = simpleRpc.getForObject(build, PurseAccountAssetEntity.class);
+		Request<UserEntity> build = Request.post("/auth/oauth2/check").body(new UserEntity());
+		UserEntity response = simpleRpc.getForObject(build, UserEntity.class);
 		System.out.println(response);
 		return response;
 	}
@@ -53,6 +53,7 @@ public interface TestRpc {
 	@Rpc(url = "test/bodytest", method = HttpMethod.POST)
 	UserEntity bodytest(@RequestBody UserEntity user);
 }
+
 @RestController
 @RequestMapping("test")
 public class TestController{
