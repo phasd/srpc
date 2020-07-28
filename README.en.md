@@ -1,36 +1,68 @@
 # srpc
 
 #### Description
-简单的基于RestTemplate的http调用
+Simple RestTemplate-based http calls, only as an accumulation of personal learning.
 
 #### Software Architecture
 Software architecture description
 
 #### Installation
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
 
 #### Instructions
+2. Use Mode One
+```java
+@RestController
+@RequestMapping("test")
+public class TestController{
+	@Autowired
+	private SimpleRpc simpleRpc;
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+	@PostMapping("/rpc")
+	public Object rpc() {
+		Request<CheckPermissionEntity> build = Request.post("/auth/oauth2/check").body(new CheckPermissionEntity());
+		PurseAccountAssetEntity response = simpleRpc.getForObject(build, PurseAccountAssetEntity.class);
+		System.out.println(response);
+		return response;
+	}
+}
+```
 
-#### Contribution
+2. Use Mode Two
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+```java
+@SpringBootApplication
+@EnableAspectJAutoProxy(proxyTargetClass = true)
+@ServletComponentScan
+@EnableSimpleRpc(basePackages = {"*******"}, mode = AdviceMode.ASPECTJ)
+public class Starter {
+	public static void main(String[] args) {
+		SpringApplication.run(Starter.class, args);
+	}
+}
+
+@RpcClient(baseUrl = "test")
+public interface TestRpc {
+	@Rpc(url = "test/pathtest/{id}/{name}", method = HttpMethod.POST)
+	String pathtest(@PathVariable("id") String id, @PathVariable("name") String name);
 
 
-#### Gitee Feature
+	@Rpc(url = "test/paramtest", method = HttpMethod.POST)
+	String paramtest(@RequestParam("id") List<String> id, @RequestParam("name") List<String> name, @RequestPart("file") Resource file);
 
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+	@Rpc(url = "test/bodytest", method = HttpMethod.POST)
+	UserEntity bodytest(@RequestBody UserEntity user);
+}
+@RestController
+@RequestMapping("test")
+public class TestController{
+
+	@Autowired
+	private TestRpc testRpc;
+
+	@PostMapping("/rpcParam")
+	public Object rpcParam(@RequestParam("file") MultipartFile file) throws IOException {
+		return testRpc.paramtest(Arrays.asList("特特1", "特特2"), Arrays.asList("zs", "ls"), resource);
+	}
+}
+```
