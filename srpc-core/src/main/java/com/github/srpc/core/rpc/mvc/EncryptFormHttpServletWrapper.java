@@ -46,7 +46,7 @@ public class EncryptFormHttpServletWrapper extends HttpServletRequestWrapper {
 		long timestamp = Long.parseLong(request.getParameter(CommonWebConstants.TIMESTAMP));
 		String completeSign = CryptContent.getSign(String.format("data=%s&timestamp=%d", data, timestamp) + CommonWebConstants.SIMPLE_RPC_SECRET_FROM);
 		if (!Objects.equals(sign, completeSign)) {
-			throw new SimpleRpcException("签名烟钱错误");
+			throw new SimpleRpcException("签名验证错误");
 		}
 		String appId = request.getHeader(CommonWebConstants.APPID);
 		data = Base64.decodeStr(data, StandardCharsets.UTF_8);
