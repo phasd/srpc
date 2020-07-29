@@ -1,9 +1,7 @@
 package com.github.srpc.core.rpc.response;
 
-import com.alibaba.fastjson.TypeReference;
-import com.alibaba.fastjson.util.ParameterizedTypeImpl;
+import com.alibaba.fastjson.JSON;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -17,10 +15,9 @@ public class SimpleRpcArrayResponseExtractor<T> extends AbstractResponseExtracto
 	public SimpleRpcArrayResponseExtractor(Class<T> responseClass) {
 		this.responseClass = responseClass;
 	}
-
+	
 	@Override
-	protected TypeReference<List<T>> buildType() {
-		ParameterizedTypeImpl inner = new ParameterizedTypeImpl(new Type[]{responseClass}, null, List.class);
-		return new TypeReference<List<T>>(inner) {};
+	protected List<T> getRes(String content) {
+		return JSON.parseArray(content, responseClass);
 	}
 }

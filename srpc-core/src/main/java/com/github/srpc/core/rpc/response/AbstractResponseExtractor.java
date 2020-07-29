@@ -1,8 +1,6 @@
 package com.github.srpc.core.rpc.response;
 
 import cn.hutool.core.io.IoUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.github.srpc.core.rpc.CommonWebConstants;
 import com.github.srpc.core.rpc.RpcContext;
 import org.springframework.http.client.ClientHttpResponse;
@@ -18,6 +16,7 @@ import java.nio.charset.StandardCharsets;
  * @create: 2020-07-22 16:27:17
  */
 public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<T> {
+
 	@Override
 	public T extractData(ClientHttpResponse response) throws IOException {
 		String dbcSecret = response.getHeaders().getFirst(CommonWebConstants.SIMPLE_RPC_SECRET);
@@ -27,7 +26,7 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		return extractData(response, true);
 	}
 
-	protected abstract TypeReference<T> buildType();
+	protected abstract T getRes(String content);
 
 	private T extractData(ClientHttpResponse response, boolean secret) throws IOException {
 		ClientHttpResponseWrapper responseWrapper;
@@ -46,6 +45,6 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		if (readContent == null) {
 			return null;
 		}
-		return JSON.parseObject(readContent, buildType());
+		return getRes(readContent);
 	}
 }

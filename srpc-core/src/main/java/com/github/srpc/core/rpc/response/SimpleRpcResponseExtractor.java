@@ -1,6 +1,6 @@
 package com.github.srpc.core.rpc.response;
 
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.JSON;
 
 /**
  * @description: 单对象返回值
@@ -15,7 +15,10 @@ public class SimpleRpcResponseExtractor<T> extends AbstractResponseExtractor<T> 
 	}
 
 	@Override
-	protected TypeReference<T> buildType() {
-		return new TypeReference<T>(responseClass) {};
+	protected T getRes(String content) {
+		if(String.class.isAssignableFrom(responseClass)){
+			return (T)content;
+		}
+		return JSON.parseObject(content, responseClass);
 	}
 }

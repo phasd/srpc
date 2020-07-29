@@ -7,6 +7,7 @@ import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.srpc.core.rpc.RpcUtils;
 import com.github.srpc.core.rpc.SimpleRpc;
+import com.github.srpc.core.rpc.SimpleRpcException;
 import com.github.srpc.core.rpc.request.Request;
 import com.github.srpc.starter.SpringContextUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -22,9 +23,12 @@ import org.springframework.web.bind.annotation.RequestPart;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @description:
@@ -83,21 +87,57 @@ public class RpcClientMethodHandler {
 	private Object doInvoke(Request<?> request) {
 		Class<?> returnType = method.getReturnType();
 		SimpleRpc bean = SpringContextUtils.getBean(SimpleRpc.class);
-		if (List.class.isAssignableFrom(returnType)) {
-			return bean.getForList(request, returnType);
+		if (returnType != null && List.class.isAssignableFrom(returnType)) {
+			Class<?> retType = getResClass(method.getGenericReturnType());
+			return bean.getForList(request, retType);
 		} else {
-			return bean.getForObject(request, returnType);
+			return bean.getForObject(request, getResClass(returnType));
 		}
+	}
+
+	private Class<?> getResClass(Type type) {
+		if (type instanceof ParameterizedType) {
+			Type first = ((ParameterizedType) type).getActualTypeArguments()[0];
+			if (first instanceof ParameterizedType) {
+				return (Class<?>) ((ParameterizedType) first).getRawType();
+			}
+			return (Class<?>) first;
+		}
+		return (Class<?>) type;
 	}
 
 	private Object doInvokeAsync(Request<?> request) {
 		Class<?> returnType = method.getReturnType();
+		if (returnType != null && !CompletableFuture.class.isAssignableFrom((returnType))) {
+			throw new SimpleRpcException("异步服务调用返回必须是CompleteFuture");
+		}
+
 		SimpleRpc bean = SpringContextUtils.getBean(SimpleRpc.class);
-		if (List.class.isAssignableFrom(returnType)) {
-			return bean.getForListAsync(request, returnType);
-		} else {
+		if (returnType == null) {
 			return bean.getForObjectAsync(request, returnType);
 		}
+		Class<?> resType = getResClass(method.getGenericReturnType());
+		if (List.class.isAssignableFrom(resType)) {
+			resType = getResClassAsync(method.getGenericReturnType());
+			return bean.getForListAsync(request, resType);
+		} else {
+			return bean.getForObjectAsync(request, resType);
+		}
+	}
+
+	private Class<?> getResClassAsync(Type type) {
+		if (type instanceof ParameterizedType) {
+			Type first = ((ParameterizedType) type).getActualTypeArguments()[0];
+			if (first instanceof ParameterizedType) {
+				Type second = ((ParameterizedType) first).getActualTypeArguments()[0];
+				if (second instanceof ParameterizedType) {
+					return (Class<?>) ((ParameterizedType) second).getRawType();
+				}
+				return (Class<?>) second;
+			}
+			return (Class<?>) first;
+		}
+		return (Class<?>) type;
 	}
 
 	private void processPath(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
