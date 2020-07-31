@@ -30,7 +30,7 @@ public class RpcRequestCallback implements RequestCallback {
 	private final HttpEntity<?> httpEntity;
 	private final List<HttpMessageConverter<?>> messageConverters;
 
-	RpcRequestCallback(RequestEntity<?> requestEntity, HttpEntity<?> httpEntity, Class<?> responseType, List<HttpMessageConverter<?>> messageConverters) {
+	RpcRequestCallback(RequestEntity<?> requestEntity, HttpEntity<?> httpEntity, Type responseType, List<HttpMessageConverter<?>> messageConverters) {
 		this.requestEntity = requestEntity;
 		this.messageConverters = messageConverters;
 		this.responseType = responseType;

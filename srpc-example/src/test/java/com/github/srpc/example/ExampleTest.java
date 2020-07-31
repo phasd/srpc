@@ -13,7 +13,7 @@ import java.util.List;
 public class ExampleTest {
 
 	@Test
-	public void test1(){
+	public void test1() {
 		String str = "sfsdf";
 //		String s = JSON.parseObject(str, String.class);
 //		System.out.println(s);

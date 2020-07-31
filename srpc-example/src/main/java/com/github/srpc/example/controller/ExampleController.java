@@ -1,5 +1,6 @@
 package com.github.srpc.example.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.github.srpc.core.rpc.SimpleRpc;
 import com.github.srpc.core.rpc.request.Request;
 import com.github.srpc.example.rpc.TestRpc;
@@ -42,6 +43,13 @@ public class ExampleController {
 		System.out.println(res);
 
 		testRpc.bodyTest(Collections.singletonMap("name", "zs")).thenAccept(System.out::println);
+
+		List<List<Map<String, String>>> lists = testRpc.bodytest2(Collections.singletonMap("name", "zs"));
+		System.out.println(JSON.toJSONString(lists));
+		Map<String, String> map = testRpc.bodytest3(Collections.singletonMap("name", "zs"));
+		System.out.println(JSON.toJSONString(map));
+		Map<String, List<Map<String, String>>> stringListMap = testRpc.bodytest4(Collections.singletonMap("name", "zs"));
+		System.out.println(JSON.toJSONString(stringListMap));
 		return ResponseEntity.ok("ok");
 	}
 
@@ -83,5 +91,23 @@ public class ExampleController {
 	public ResponseEntity<Object> bodyTest(@RequestBody Map<String, String> param) {
 		System.out.println(param);
 		return ResponseEntity.ok(Collections.singletonList("sdsdd"));
+	}
+
+	@PostMapping("bodytest2")
+	public ResponseEntity<?> bodytest2(@RequestBody Map<String, String> param) {
+		System.out.println(JSON.toJSONString(param));
+		return ResponseEntity.ok().body(Collections.singletonList(Collections.singletonList(param)));
+	}
+
+	@PostMapping("bodytest3")
+	public ResponseEntity<?> bodytest3(@RequestBody Map<String, String> param) {
+		System.out.println(JSON.toJSONString(param));
+		return ResponseEntity.ok().body(param);
+	}
+
+	@PostMapping("bodytest4")
+	public ResponseEntity<?> bodytest4(@RequestBody Map<String, String> param) {
+		System.out.println(JSON.toJSONString(param));
+		return ResponseEntity.ok().body(Collections.singletonMap("test", Collections.singletonList(param)));
 	}
 }

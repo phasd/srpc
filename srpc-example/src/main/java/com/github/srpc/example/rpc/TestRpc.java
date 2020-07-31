@@ -28,4 +28,13 @@ public interface TestRpc {
 
 	@Rpc(url = "/example/bodyTest", method = HttpMethod.POST, async = true)
 	CompletableFuture<List<String>> bodyTest(@RequestBody Map<String, String> param);
+
+	@Rpc(url = "example/bodytest2", method = HttpMethod.POST)
+	List<List<Map<String, String>>> bodytest2(@RequestBody Map<String, String> param);
+
+	@Rpc(url = "example/bodytest3", method = HttpMethod.POST)
+	Map<String, String> bodytest3(@RequestBody Map<String, String> param);
+
+	@Rpc(url = "example/bodytest4", method = HttpMethod.POST)
+	Map<String, List<Map<String, String>>> bodytest4(@RequestBody Map<String, String> param);
 }

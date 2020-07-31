@@ -18,6 +18,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
@@ -38,26 +39,26 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 		super(restTemplate, rpcConfig);
 	}
 
-	public <T> T getForObject(Request<?> request, Class<T> responseType) {
+	public <T> T getForObject(Request<?> request, Type responseType) {
 		return doExecute(request, responseType);
 	}
 
-	public <T> List<T> getForList(Request<?> request, Class<T> responseType) {
+	public <T> List<T> getForList(Request<?> request, Type responseType) {
 		return doExecuteArray(request, responseType);
 	}
 
 
-	public <T> CompletableFuture<T> getForObjectAsync(Request<?> request, Class<T> responseType) {
+	public <T> CompletableFuture<T> getForObjectAsync(Request<?> request, Type responseType) {
 		return doExecuteAsync(request, responseType);
 	}
 
-	public <T> CompletableFuture<List<T>> getForListAsync(Request<?> request, Class<T> responseType) {
+	public <T> CompletableFuture<List<T>> getForListAsync(Request<?> request, Type responseType) {
 		return doExecuteArrayAsync(request, responseType);
 	}
 
 
 	@Override
-	public <T> T doExecute(Request<?> request, Class<T> responseType) {
+	public <T> T doExecute(Request<?> request, Type responseType) {
 		try {
 			RpcContext.initContext(rpcConfig);
 			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(responseType);
@@ -68,7 +69,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	}
 
 	@Override
-	public <T> List<T> doExecuteArray(Request<?> request, Class<T> responseType) {
+	public <T> List<T> doExecuteArray(Request<?> request, Type responseType) {
 		try {
 			RpcContext.initContext(rpcConfig);
 			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(responseType);
@@ -80,7 +81,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	}
 
 	@Override
-	public <T> CompletableFuture<T> doExecuteAsync(Request<?> request, Class<T> responseType) {
+	public <T> CompletableFuture<T> doExecuteAsync(Request<?> request, Type responseType) {
 		try {
 			RpcContext.initContext(rpcConfig);
 			return CompletableFuture.supplyAsync(() -> {
@@ -97,7 +98,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	}
 
 	@Override
-	public <T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> request, Class<T> responseType) {
+	public <T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> request, Type responseType) {
 		try {
 			RpcContext.initContext(rpcConfig);
 			return CompletableFuture.supplyAsync(() -> {
@@ -116,6 +117,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	@Override
 	public void destroy() throws Exception {
 		if (executor != null) {
+			log.info("simple executor关闭");
 			executor.shutdown();
 		}
 	}
@@ -135,7 +137,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 		executor = RpcThreadPoolExecutor.getInstance(rpcConfig);
 	}
 
-	private <T> T getResponse(Request<?> request, ResponseExtractor<T> responseExtractor, Class<?> responseType) {
+	private <T> T getResponse(Request<?> request, ResponseExtractor<T> responseExtractor, Type responseType) {
 		checkRequest(request);
 		RequestEntity<?> requestEntity = getRequestEntity(request);
 		HttpEntity<?> httpEntity = getHttpEntity(request);

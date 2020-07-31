@@ -3,6 +3,7 @@ package com.github.srpc.core.rpc;
 
 import com.github.srpc.core.rpc.request.Request;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,7 +22,7 @@ public interface RpcInterface {
 	 * @param responseType  responseType
 	 * @return Response
 	 */
-	<T> T doExecute(Request<?> requestEntity, Class<T> responseType);
+	<T> T doExecute(Request<?> requestEntity, Type responseType);
 
 	/**
 	 * 异步获取单个对象
@@ -30,7 +31,7 @@ public interface RpcInterface {
 	 * @param responseType  responseType
 	 * @return Response
 	 */
-	<T> CompletableFuture<T> doExecuteAsync(Request<?> requestEntity, Class<T> responseType);
+	<T> CompletableFuture<T> doExecuteAsync(Request<?> requestEntity, Type responseType);
 
 	/**
 	 * 获取集合对象
@@ -39,7 +40,7 @@ public interface RpcInterface {
 	 * @param responseType  responseType
 	 * @return Response
 	 */
-	<T> List<T> doExecuteArray(Request<?> requestEntity, Class<T> responseType);
+	<T> List<T> doExecuteArray(Request<?> requestEntity, Type responseType);
 
 	/**
 	 * 异步获取集合对象
@@ -48,5 +49,5 @@ public interface RpcInterface {
 	 * @param responseType  responseType
 	 * @return Response
 	 */
-	<T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> requestEntity, Class<T> responseType);
+	<T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> requestEntity, Type responseType);
 }

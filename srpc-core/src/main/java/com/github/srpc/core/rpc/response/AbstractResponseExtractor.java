@@ -1,6 +1,9 @@
 package com.github.srpc.core.rpc.response;
 
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.lang.SimpleCache;
+import cn.hutool.core.util.ArrayUtil;
+import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 import com.github.srpc.core.rpc.CommonWebConstants;
 import com.github.srpc.core.rpc.RpcContext;
 import org.springframework.http.client.ClientHttpResponse;
@@ -8,6 +11,8 @@ import org.springframework.web.client.ResponseExtractor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -16,6 +21,7 @@ import java.nio.charset.StandardCharsets;
  * @create: 2020-07-22 16:27:17
  */
 public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<T> {
+	private static final SimpleCache<Type, Type> TYPE_CACHE = new SimpleCache<>();
 
 	@Override
 	public T extractData(ClientHttpResponse response) throws IOException {
@@ -27,6 +33,29 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 	}
 
 	protected abstract T getRes(String content);
+
+	protected Type getOuterType(Type type) {
+		Type cachedType = TYPE_CACHE.get(type);
+		if (cachedType == null) {
+			return TYPE_CACHE.put(type, completeRealType(type));
+		}
+		return cachedType;
+	}
+
+	private Type completeRealType(Type type) {
+		if (type instanceof ParameterizedType) {
+			ParameterizedType parameterizedType = ((ParameterizedType) type);
+			Type[] argumentTypeArr = parameterizedType.getActualTypeArguments();
+			if (ArrayUtil.isNotEmpty(argumentTypeArr)) {
+				for (int i = 0; i < argumentTypeArr.length; i++) {
+					Type argument = argumentTypeArr[i];
+					argumentTypeArr[i] = completeRealType(argument);
+				}
+			}
+			return new ParameterizedTypeImpl(argumentTypeArr, null, parameterizedType.getRawType());
+		}
+		return type;
+	}
 
 	private T extractData(ClientHttpResponse response, boolean secret) throws IOException {
 		ClientHttpResponseWrapper responseWrapper;
