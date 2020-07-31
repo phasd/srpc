@@ -50,6 +50,8 @@ public class ExampleController {
 		System.out.println(JSON.toJSONString(map));
 		Map<String, List<Map<String, String>>> stringListMap = testRpc.bodytest4(Collections.singletonMap("name", "zs"));
 		System.out.println(JSON.toJSONString(stringListMap));
+
+		testRpc.bodytest5(Collections.singletonMap("name", "zs"));
 		return ResponseEntity.ok("ok");
 	}
 
@@ -109,5 +111,10 @@ public class ExampleController {
 	public ResponseEntity<?> bodytest4(@RequestBody Map<String, String> param) {
 		System.out.println(JSON.toJSONString(param));
 		return ResponseEntity.ok().body(Collections.singletonMap("test", Collections.singletonList(param)));
+	}
+
+	@PostMapping("bodytest5")
+	public void bodytest5(@RequestBody Map<String, String> param) {
+		System.out.println(JSON.toJSONString(param));
 	}
 }

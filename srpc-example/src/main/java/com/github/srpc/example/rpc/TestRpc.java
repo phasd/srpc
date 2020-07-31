@@ -37,4 +37,7 @@ public interface TestRpc {
 
 	@Rpc(url = "example/bodytest4", method = HttpMethod.POST)
 	Map<String, List<Map<String, String>>> bodytest4(@RequestBody Map<String, String> param);
+
+	@Rpc(url = "example/bodytest5", method = HttpMethod.POST)
+	void bodytest5(@RequestBody Map<String, String> param);
 }

@@ -69,7 +69,7 @@ public class RpcRequestCallback implements RequestCallback {
 	}
 
 	private void headerRequest(ClientHttpRequest httpRequest) {
-		if (this.responseType != null) {
+		if (this.responseType != null && !Void.TYPE.equals(this.responseType)) {
 			Class<?> responseClass = null;
 			if (this.responseType instanceof Class) {
 				responseClass = (Class<?>) this.responseType;
