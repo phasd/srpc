@@ -3,16 +3,25 @@ package com.github.srpc.core.rpc;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import com.github.srpc.core.rpc.executor.RpcThreadPoolExecutor;
+import com.github.srpc.core.rpc.interceptor.SimpleRpcConfigurer;
 import com.github.srpc.core.rpc.request.Request;
+import com.github.srpc.core.rpc.request.SimpleRpcHttpRequestInterceptor;
 import com.github.srpc.core.rpc.response.SimpleRpcArrayResponseExtractor;
 import com.github.srpc.core.rpc.response.SimpleRpcResponseExtractor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseExtractor;
@@ -20,7 +29,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -31,12 +42,14 @@ import java.util.concurrent.ExecutorService;
  * @create: 2020-07-20 11:53:20
  */
 @Slf4j
-public class SimpleRpc extends AbstractRestRpc implements InitializingBean, DisposableBean {
+public class SimpleRpc extends AbstractRestRpc implements InitializingBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, DisposableBean {
 
 	private ExecutorService executor;
+	private ApplicationContext applicationContext;
+	private RestTemplate restTemplate;
 
-	public SimpleRpc(RestTemplate restTemplate, SimpleRpcConfigurationProperties rpcConfig) {
-		super(restTemplate, rpcConfig);
+	public SimpleRpc(SimpleRpcConfigurationProperties rpcConfig) {
+		super(rpcConfig);
 	}
 
 	public <T> T getForObject(Request<?> request, Type responseType) {
@@ -60,8 +73,9 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	@Override
 	public <T> T doExecute(Request<?> request, Type responseType) {
 		try {
-			RpcContext.initContext(rpcConfig);
-			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(responseType);
+			RpcContext.initContext(rpcConfig, request);
+			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(request,
+					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
 			return getResponse(request, responseExtractor, responseType);
 		} finally {
 			RpcContext.clear();
@@ -71,8 +85,9 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	@Override
 	public <T> List<T> doExecuteArray(Request<?> request, Type responseType) {
 		try {
-			RpcContext.initContext(rpcConfig);
-			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(responseType);
+			RpcContext.initContext(rpcConfig, request);
+			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(request,
+					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
 			return getResponse(request, responseExtractor, responseType);
 
 		} finally {
@@ -83,7 +98,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	@Override
 	public <T> CompletableFuture<T> doExecuteAsync(Request<?> request, Type responseType) {
 		try {
-			RpcContext.initContext(rpcConfig);
+			RpcContext.initContext(rpcConfig, request);
 			return CompletableFuture.supplyAsync(() -> {
 				try {
 					return doExecute(request, responseType);
@@ -100,7 +115,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 	@Override
 	public <T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> request, Type responseType) {
 		try {
-			RpcContext.initContext(rpcConfig);
+			RpcContext.initContext(rpcConfig, request);
 			return CompletableFuture.supplyAsync(() -> {
 				try {
 					return doExecuteArray(request, responseType);
@@ -127,10 +142,38 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Disp
 		init();
 	}
 
-	private void init() {
-		if (restTemplate == null) {
-			throw new NullPointerException("Rpc 服务调用初始化 restTemplate 不能为空");
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (event.getApplicationContext() == this.applicationContext) {
+			Map<String, SimpleRpcConfigurer> configMap = this.applicationContext.getBeansOfType(SimpleRpcConfigurer.class);
+			if (CollectionUtil.isNotEmpty(configMap)) {
+				configMap.forEach((k, v) -> v.configure(simpleRpcConfigRegister));
+			}
+			AnnotationAwareOrderComparator.sort(simpleRpcConfigRegister.getAllPreInterceptorList());
+			AnnotationAwareOrderComparator.sort(simpleRpcConfigRegister.getAllPostInterceptorList());
+			initRestTemplate();
 		}
+	}
+
+	private void initRestTemplate() {
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		requestFactory.setConnectTimeout(rpcConfig.getConnectTimeout());
+		requestFactory.setConnectionRequestTimeout(rpcConfig.getConnectionRequestTimeout());
+		requestFactory.setReadTimeout(rpcConfig.getSocketTimeout());
+
+		this.restTemplate = new RestTemplate();
+		restTemplate.setRequestFactory(requestFactory);
+		restTemplate.setInterceptors(Collections.singletonList(new SimpleRpcHttpRequestInterceptor(rpcConfig.isSecret(), simpleRpcConfigRegister.getAllPreInterceptorList())));
+	}
+
+
+	private void init() {
 		if (rpcConfig == null) {
 			throw new NullPointerException("Rpc 服务调用配置 rpcConfig 不能为空");
 		}

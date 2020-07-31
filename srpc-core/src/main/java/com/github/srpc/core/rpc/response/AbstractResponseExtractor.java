@@ -1,11 +1,15 @@
 package com.github.srpc.core.rpc.response;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.SimpleCache;
 import cn.hutool.core.util.ArrayUtil;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 import com.github.srpc.core.rpc.CommonWebConstants;
 import com.github.srpc.core.rpc.RpcContext;
+import com.github.srpc.core.rpc.interceptor.RpcPostInterceptor;
+import com.github.srpc.core.rpc.request.Request;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
 
@@ -14,6 +18,7 @@ import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * @description:
@@ -22,6 +27,13 @@ import java.nio.charset.StandardCharsets;
  */
 public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<T> {
 	private static final SimpleCache<Type, Type> TYPE_CACHE = new SimpleCache<>();
+	private final List<RpcPostInterceptor> postInterceptorList;
+	private final Request request;
+
+	public AbstractResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList) {
+		this.request = request;
+		this.postInterceptorList = postInterceptorList;
+	}
 
 	@Override
 	public T extractData(ClientHttpResponse response) throws IOException {
@@ -71,9 +83,25 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		}
 		InputStream body = responseWrapper.getBody();
 		String readContent = IoUtil.read(body, StandardCharsets.UTF_8);
+
+		readContent = handlePostInterceptors(response.getHeaders(), readContent);
 		if (readContent == null) {
 			return null;
 		}
 		return getRes(readContent);
+	}
+
+	private String handlePostInterceptors(HttpHeaders headers, String content) {
+		if (CollectionUtil.isEmpty(this.postInterceptorList)) {
+			return content;
+		}
+
+		for (RpcPostInterceptor rpcPostInterceptor : this.postInterceptorList) {
+			if (!rpcPostInterceptor.postSupports(request, headers)) {
+				continue;
+			}
+			content = rpcPostInterceptor.postInterceptor(request, headers, content);
+		}
+		return content;
 	}
 }

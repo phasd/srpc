@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.github.srpc.core.rpc.request.Request;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -19,6 +20,7 @@ import java.util.Map;
  */
 public class RpcContext {
 	private static final ThreadLocal<Map<String, String>> HEADERS = new ThreadLocal<>();
+	private static final ThreadLocal<Request> CURRENT_REQUEST = new ThreadLocal<>();
 
 	private RpcContext() {}
 
@@ -34,6 +36,14 @@ public class RpcContext {
 		} else {
 			map.putAll(headers);
 		}
+	}
+
+	public static Request getRequest() {
+		return CURRENT_REQUEST.get();
+	}
+
+	private static void setRequest(Request request) {
+		CURRENT_REQUEST.set(request);
 	}
 
 	public static void setHeader(String key, String value) {
@@ -58,7 +68,7 @@ public class RpcContext {
 		HEADERS.remove();
 	}
 
-	static void initContext(SimpleRpcConfigurationProperties rpcConfig) {
+	static void initContext(SimpleRpcConfigurationProperties rpcConfig, Request currentRequest) {
 		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 		if (requestAttributes != null) {
 			HttpServletRequest request = requestAttributes.getRequest();
@@ -67,6 +77,7 @@ public class RpcContext {
 			Map<String, String> copyHeadMap = JSON.parseObject(jsonStr, new TypeReference<Map<String, String>>() {});
 			copyHeadMap.putIfAbsent(CommonWebConstants.APPID, rpcConfig.getAppid());
 			RpcContext.setHeaders(copyHeadMap);
+			RpcContext.setRequest(currentRequest);
 		} else {
 			RpcContext.setHeaders(Collections.singletonMap(CommonWebConstants.APPID, rpcConfig.getAppid()));
 		}

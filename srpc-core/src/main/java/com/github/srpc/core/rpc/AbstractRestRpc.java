@@ -1,7 +1,7 @@
 package com.github.srpc.core.rpc;
 
 import cn.hutool.core.util.StrUtil;
-import org.springframework.web.client.RestTemplate;
+import com.github.srpc.core.rpc.interceptor.SimpleRpcConfigRegister;
 
 import java.net.URI;
 import java.util.Map;
@@ -13,12 +13,19 @@ import java.util.Map;
  */
 public abstract class AbstractRestRpc implements RpcInterface {
 
-	protected RestTemplate restTemplate;
+	/**
+	 * rpcConfig
+	 */
 	protected SimpleRpcConfigurationProperties rpcConfig;
 
-	public AbstractRestRpc(RestTemplate restTemplate, SimpleRpcConfigurationProperties rpcConfig) {
-		this.restTemplate = restTemplate;
+	/**
+	 * simpleRpcRegister
+	 */
+	protected SimpleRpcConfigRegister simpleRpcConfigRegister;
+
+	public AbstractRestRpc(SimpleRpcConfigurationProperties rpcConfig) {
 		this.rpcConfig = rpcConfig;
+		this.simpleRpcConfigRegister = new SimpleRpcConfigRegister();
 	}
 
 	String getUrl(URI uri) {

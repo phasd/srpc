@@ -2,8 +2,11 @@ package com.github.srpc.core.rpc.response;
 
 import cn.hutool.core.util.TypeUtil;
 import com.alibaba.fastjson.JSON;
+import com.github.srpc.core.rpc.interceptor.RpcPostInterceptor;
+import com.github.srpc.core.rpc.request.Request;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * @description: 单对象返回值
@@ -13,14 +16,16 @@ import java.lang.reflect.Type;
 public class SimpleRpcResponseExtractor<T> extends AbstractResponseExtractor<T> {
 	private final Type responseClass;
 
-	public SimpleRpcResponseExtractor(Type responseClass) {
+	public SimpleRpcResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, Type responseClass) {
+		super(request, postInterceptorList);
 		this.responseClass = responseClass;
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected T getRes(String content) {
 		if (String.class.isAssignableFrom(TypeUtil.getClass(responseClass))) {
-			return (T) content;
+			return (T)content;
 		}
 		return JSON.parseObject(content, getOuterType(responseClass));
 	}

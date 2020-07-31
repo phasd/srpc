@@ -7,6 +7,7 @@ import com.github.srpc.core.rpc.CommonWebConstants;
 import com.github.srpc.core.rpc.CryptContent;
 import com.github.srpc.core.rpc.RpcContext;
 import com.github.srpc.core.rpc.SimpleRpcException;
+import com.github.srpc.core.rpc.interceptor.RpcPreInterceptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
@@ -16,6 +17,7 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,14 +26,18 @@ import java.util.Map;
  * @create: 2020-07-20 14:16:16
  */
 public class SimpleRpcHttpRequestInterceptor implements ClientHttpRequestInterceptor {
-	private boolean secret;
+	private final boolean secret;
+	private final List<RpcPreInterceptor> preInterceptors;
 
-	public SimpleRpcHttpRequestInterceptor(boolean secret) {
+	public SimpleRpcHttpRequestInterceptor(boolean secret, List<RpcPreInterceptor> preInterceptors) {
 		this.secret = secret;
+		this.preInterceptors = preInterceptors;
 	}
 
 	@Override
 	public ClientHttpResponse intercept(HttpRequest httpRequest, byte[] bytes, ClientHttpRequestExecution clientHttpRequestExecution) throws IOException {
+		handlePreInterceptors(httpRequest, bytes);
+
 		HttpHeaders headers = httpRequest.getHeaders();
 		Map<String, String> rpcParams = RpcContext.getHeaders();
 		String appid = StrUtil.EMPTY;
@@ -64,5 +70,18 @@ public class SimpleRpcHttpRequestInterceptor implements ClientHttpRequestInterce
 			bytes = encryptContent.getBytes(StandardCharsets.UTF_8);
 		}
 		return clientHttpRequestExecution.execute(httpRequest, bytes);
+	}
+
+	private void handlePreInterceptors(HttpRequest httpRequest, byte[] bytes) {
+		if (CollectionUtil.isEmpty(this.preInterceptors)) {
+			return;
+		}
+		Request request = RpcContext.getRequest();
+		for (RpcPreInterceptor preInterceptor : this.preInterceptors) {
+			if (!preInterceptor.preSupports(request)) {
+				continue;
+			}
+			preInterceptor.preInterceptor(httpRequest);
+		}
 	}
 }
