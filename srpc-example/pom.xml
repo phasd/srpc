@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <artifactId>srpc-starter</artifactId>
-            <groupId>com.github.srpc</groupId>
+            <groupId>com.github.phasd</groupId>
             <version>${project.version}</version>
         </dependency>
 

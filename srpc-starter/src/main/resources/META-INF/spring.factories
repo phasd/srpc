@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-    com.github.srpc.starter.SimpleAutoConfiguration
+    com.github.phasd.srpc.starter.SimpleAutoConfiguration
