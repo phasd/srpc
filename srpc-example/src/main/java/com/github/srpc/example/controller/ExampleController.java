@@ -53,7 +53,10 @@ public class ExampleController {
 
 		testRpc.bodytest5(Collections.singletonMap("name", "zs"));
 
-		testRpc.bodytest6(Collections.singletonMap("name", "zs")).thenAccept(System.out::println);
+		testRpc.bodytest6(Collections.singletonMap("name", "zs")).thenAcceptAsync(t->{
+			System.out.println("异步调用");
+			System.out.println(t);
+		});
 		return ResponseEntity.ok("ok");
 	}
 
