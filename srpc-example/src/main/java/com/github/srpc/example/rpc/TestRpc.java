@@ -40,4 +40,7 @@ public interface TestRpc {
 
 	@Rpc(url = "example/bodytest5", method = HttpMethod.POST)
 	void bodytest5(@RequestBody Map<String, String> param);
+
+	@Rpc(url = "example/bodytest3", method = HttpMethod.POST, async = true)
+	CompletableFuture<Map<String, String>> bodytest6(@RequestBody Map<String, String> param);
 }

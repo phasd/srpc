@@ -52,6 +52,8 @@ public class ExampleController {
 		System.out.println(JSON.toJSONString(stringListMap));
 
 		testRpc.bodytest5(Collections.singletonMap("name", "zs"));
+
+		testRpc.bodytest6(Collections.singletonMap("name", "zs")).thenAccept(System.out::println);
 		return ResponseEntity.ok("ok");
 	}
 

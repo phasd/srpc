@@ -42,7 +42,7 @@ public class RpcContext {
 		return CURRENT_REQUEST.get();
 	}
 
-	private static void setRequest(Request request) {
+	public static void setRequest(Request request) {
 		CURRENT_REQUEST.set(request);
 	}
 
