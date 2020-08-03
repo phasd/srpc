@@ -1,7 +1,7 @@
 # srpc
 
 #### 介绍
-简单的基于RestTemplate的http调用， 仅作为个人学习的积累。
+简单的基于RestTemplate的http调用。
 
 #### 软件架构
 
