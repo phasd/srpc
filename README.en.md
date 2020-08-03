@@ -1,7 +1,7 @@
 # srpc
 
 #### Description
-Simple RestTemplate-based http calls, only as an accumulation of personal learning.
+Simple RestTemplate-based http calls.
 
 #### Software Architecture
 Software architecture description
