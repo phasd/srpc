@@ -53,7 +53,7 @@ public class ExampleController {
 
 		testRpc.bodytest5(Collections.singletonMap("name", "zs"));
 
-		testRpc.bodytest6(Collections.singletonMap("name", "zs")).thenAcceptAsync(t->{
+		testRpc.bodytest6(Collections.singletonMap("name", "zs")).thenAcceptAsync(t -> {
 			System.out.println("异步调用");
 			System.out.println(t);
 		});

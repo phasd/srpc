@@ -2,8 +2,8 @@ package com.github.phasd.srpc.core.rpc.response;
 
 import cn.hutool.core.util.TypeUtil;
 import com.alibaba.fastjson.JSON;
-import com.github.phasd.srpc.core.rpc.request.Request;
 import com.github.phasd.srpc.core.rpc.interceptor.RpcPostInterceptor;
+import com.github.phasd.srpc.core.rpc.request.Request;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -25,7 +25,7 @@ public class SimpleRpcResponseExtractor<T> extends AbstractResponseExtractor<T> 
 	@SuppressWarnings("unchecked")
 	protected T getRes(String content) {
 		if (String.class.isAssignableFrom(TypeUtil.getClass(responseClass))) {
-			return (T)content;
+			return (T) content;
 		}
 		return JSON.parseObject(content, getOuterType(responseClass));
 	}
