@@ -1,4 +1,0 @@
-phzasd
-phzasd@126.com
-
-mvn clean javadoc:jar source:jar install gpg:sign -Dgpg.passphrase=phzasd@126.com
