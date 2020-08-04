@@ -5,11 +5,11 @@
     <parent>
         <artifactId>srpc</artifactId>
         <groupId>com.github.phasd</groupId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
     <name>srpc-core</name>
     <description>a simple http for RestTemplate</description>
-    <url>git:https://github.com/phasd/srpc</url>
+    <url>https://github.com/phasd/srpc</url>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>srpc-core</artifactId>
