@@ -9,6 +9,13 @@
 
 
 #### 使用说明
+```xml
+ <dependency>
+    <artifactId>srpc-starter</artifactId>
+    <groupId>com.github.phasd</groupId>
+    <version>1.0</version>
+</dependency>
+```
 1. 方式一
 ```java
 @RestController
