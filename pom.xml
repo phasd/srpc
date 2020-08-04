@@ -6,11 +6,13 @@
 
     <groupId>com.github.phasd</groupId>
     <artifactId>srpc</artifactId>
+    <name>srpc</name>
+    <description>a simple http for RestTemplate</description>
+    <url>git:https://github.com/phasd/srpc</url>
     <version>1.0</version>
     <modules>
         <module>srpc-core</module>
         <module>srpc-starter</module>
-        <module>srpc-example</module>
     </modules>
 
     <packaging>pom</packaging>
@@ -107,7 +109,7 @@
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>oss</serverId>
+                    <serverId>oss-release</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
@@ -212,7 +214,7 @@
                         <artifactId>nexus-staging-maven-plugin</artifactId>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>oss</serverId>
+                            <serverId>oss-release</serverId>
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                             <autoReleaseAfterClose>false</autoReleaseAfterClose>
                         </configuration>
@@ -254,16 +256,27 @@
             </build>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>oss</id>
+                    <id>oss-snapshots</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
                 </snapshotRepository>
                 <repository>
-                    <id>oss</id>
+                    <id>oss-release</id>
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
         </profile>
     </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>oss-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>oss-release</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <licenses>
         <license>

@@ -157,6 +157,9 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 			}
 			AnnotationAwareOrderComparator.sort(simpleRpcConfigRegister.getAllPreInterceptorList());
 			AnnotationAwareOrderComparator.sort(simpleRpcConfigRegister.getAllPostInterceptorList());
+			Map<String, String> proxy = this.rpcConfig.getProxy();
+			simpleRpcConfigRegister.addMoreProxy(proxy);
+			this.rpcConfig.setProxy(simpleRpcConfigRegister.getProxy());
 			initRestTemplate();
 		}
 	}

@@ -7,6 +7,9 @@
         <groupId>com.github.phasd</groupId>
         <version>1.0</version>
     </parent>
+    <name>srpc-core</name>
+    <description>a simple http for RestTemplate</description>
+    <url>git:https://github.com/phasd/srpc</url>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>srpc-core</artifactId>
@@ -77,7 +80,7 @@
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>oss</serverId>
+                    <serverId>oss-release</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>

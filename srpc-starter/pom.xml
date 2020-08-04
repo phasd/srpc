@@ -8,7 +8,9 @@
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>srpc-starter</name>
+    <description>a simple http for RestTemplate</description>
+    <url>git:https://github.com/phasd/srpc</url>
     <artifactId>srpc-starter</artifactId>
 
     <dependencies>
@@ -40,7 +42,7 @@
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>oss</serverId>
+                    <serverId>oss-release</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
