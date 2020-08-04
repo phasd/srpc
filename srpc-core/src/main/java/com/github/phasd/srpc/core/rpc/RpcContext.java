@@ -66,6 +66,7 @@ public class RpcContext {
 
 	public static void clear() {
 		HEADERS.remove();
+		CURRENT_REQUEST.remove();
 	}
 
 	static void initContext(SimpleRpcConfigurationProperties rpcConfig, Request currentRequest) {
@@ -77,9 +78,9 @@ public class RpcContext {
 			Map<String, String> copyHeadMap = JSON.parseObject(jsonStr, new TypeReference<Map<String, String>>() {});
 			copyHeadMap.putIfAbsent(CommonWebConstants.APPID, rpcConfig.getAppid());
 			RpcContext.setHeaders(copyHeadMap);
-			RpcContext.setRequest(currentRequest);
 		} else {
 			RpcContext.setHeaders(Collections.singletonMap(CommonWebConstants.APPID, rpcConfig.getAppid()));
 		}
+		RpcContext.setRequest(currentRequest);
 	}
 }
