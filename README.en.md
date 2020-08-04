@@ -10,6 +10,15 @@ Software architecture description
 
 
 #### Instructions
+
+```xml
+ <dependency>
+    <artifactId>srpc-starter</artifactId>
+    <groupId>com.github.phasd</groupId>
+    <version>1.0</version>
+</dependency>
+```
+
 2. Use Mode One
 ```java
 @RestController
