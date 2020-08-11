@@ -21,18 +21,43 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-22 16:27:17
+ * AbstractResponseExtractor
+ *
+ * @author phz
+ * @date 2020-07-22 16:27:17
+ * @since V1.0
  */
 public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<T> {
+
+	/**
+	 * type 缓存
+	 */
 	private static final SimpleCache<Type, Type> TYPE_CACHE = new SimpleCache<>();
+
+	/**
+	 * 后置拦截器
+	 */
 	private final List<RpcPostInterceptor> postInterceptorList;
+
+	/**
+	 * 原始请求
+	 */
 	private final Request request;
 
-	public AbstractResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList) {
+	/**
+	 * 密钥
+	 */
+	private String secretKey;
+
+	/**
+	 * @param request             原始Request
+	 * @param postInterceptorList 后置拦截器
+	 * @param secretKey           密钥
+	 */
+	public AbstractResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, String secretKey) {
 		this.request = request;
 		this.postInterceptorList = postInterceptorList;
+		this.secretKey = secretKey;
 	}
 
 	@Override
@@ -44,8 +69,21 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		return extractData(response, true);
 	}
 
+
+	/**
+	 * 获取返回值
+	 *
+	 * @param content 请求返回
+	 * @return 返回结果
+	 */
 	protected abstract T getRes(String content);
 
+	/**
+	 * 获取返回值的type
+	 *
+	 * @param type 返回值类型
+	 * @return 返回值的type
+	 */
 	protected Type getOuterType(Type type) {
 		Type cachedType = TYPE_CACHE.get(type);
 		if (cachedType == null) {
@@ -54,6 +92,12 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		return cachedType;
 	}
 
+	/**
+	 * 根据是否是ParameterizedType 递归处理
+	 *
+	 * @param type 返回值类型
+	 * @return 返回值的type
+	 */
 	private Type completeRealType(Type type) {
 		if (type instanceof ParameterizedType) {
 			ParameterizedType parameterizedType = ((ParameterizedType) type);
@@ -69,11 +113,19 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		return type;
 	}
 
+	/**
+	 * 抽取返回值
+	 *
+	 * @param response 返回
+	 * @param secret   是否是加密
+	 * @return 序列化后的返回结果
+	 * @throws IOException IO异常
+	 */
 	private T extractData(ClientHttpResponse response, boolean secret) throws IOException {
 		ClientHttpResponseWrapper responseWrapper;
 		if (secret) {
 			String appId = RpcContext.getHeader(CommonWebConstants.APPID);
-			responseWrapper = new SecretClientResponseWrapper(response, appId);
+			responseWrapper = new SecretClientResponseWrapper(response, appId, secretKey);
 		} else {
 			responseWrapper = new NoSecretClientResponseWrapper(response);
 		}
@@ -91,6 +143,13 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 		return getRes(readContent);
 	}
 
+	/**
+	 * 后置处理
+	 *
+	 * @param headers 返回头部
+	 * @param content 返回内容
+	 * @return 返回内容
+	 */
 	private String handlePostInterceptors(HttpHeaders headers, String content) {
 		if (CollectionUtil.isEmpty(this.postInterceptorList)) {
 			return content;

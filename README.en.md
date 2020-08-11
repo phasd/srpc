@@ -15,7 +15,7 @@ Software architecture description
  <dependency>
     <artifactId>srpc-starter</artifactId>
     <groupId>com.github.phasd</groupId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 

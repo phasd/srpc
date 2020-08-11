@@ -11,17 +11,30 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-27 18:41:32
+ * RpcClientFactoryBean
+ *
+ * @author phz
+ * @date 2020-07-27 18:41:32
+ * @since V1.0
  */
 public class RpcClientFactoryBean<T> implements FactoryBean<T>, InitializingBean {
+	/**
+	 * 代理接口
+	 */
 	private Class<T> proxyInterface;
+
+	/**
+	 * 代理模式
+	 */
 	private AdviceMode mode;
 
 	public RpcClientFactoryBean() {
 	}
 
+	/**
+	 * @param proxyInterface 代理接口
+	 * @param mode           代理模式
+	 */
 	public RpcClientFactoryBean(Class<T> proxyInterface, AdviceMode mode) {
 		this.proxyInterface = proxyInterface;
 		this.mode = mode;

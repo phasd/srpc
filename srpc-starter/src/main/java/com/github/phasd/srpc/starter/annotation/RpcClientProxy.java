@@ -8,11 +8,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * @description: Client 代理
- * @author: phz
- * @create: 2020-07-28 09:44:27
+ * Client 代理
+ *
+ * @author phz
+ * @date 2020-07-28 15:49:00
+ * @since V1.0
  */
 public class RpcClientProxy<T> implements InvocationHandler {
+	/**
+	 * client 原参数信息
+	 */
 	private final RpcClientTarget<T> target;
 
 	public RpcClientProxy(RpcClientTarget<T> target) {
@@ -24,6 +29,11 @@ public class RpcClientProxy<T> implements InvocationHandler {
 		return target.invoke(proxy, method, args);
 	}
 
+	/**
+	 * 根据代理模式获取代理对象
+	 * @param mode 代理模式
+	 * @return 代理对象
+	 */
 	@SuppressWarnings("unchecked")
 	public T getProxy(AdviceMode mode) {
 		if (AdviceMode.PROXY.equals(mode)) {

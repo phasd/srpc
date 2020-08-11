@@ -1,9 +1,11 @@
 package com.github.phasd.srpc.core.rpc.interceptor;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-31 14:50:07
+ * SimpleRpcConfigurer
+ *
+ * @author phz
+ * @date 2020-07-31 14:50:07
+ * @since V1.0
  */
 @FunctionalInterface
 public interface SimpleRpcConfigurer {

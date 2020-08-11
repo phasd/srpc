@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * @description: Rpc接口
- * @author: phz
- * @create: 2020-07-20 11:53:20
+ * Rpc接口
+ *
+ * @author phz
+ * @date 2020-07-20 11:53:20
+ * @since V1.0
  */
 public interface RpcInterface {
 
@@ -20,6 +22,7 @@ public interface RpcInterface {
 	 *
 	 * @param requestEntity RequestEntity
 	 * @param responseType  responseType
+	 * @param <T>           泛型参数
 	 * @return Response
 	 */
 	<T> T doExecute(Request<?> requestEntity, Type responseType);
@@ -29,6 +32,7 @@ public interface RpcInterface {
 	 *
 	 * @param requestEntity RequestEntity
 	 * @param responseType  responseType
+	 * @param <T>           泛型参数
 	 * @return Response
 	 */
 	<T> CompletableFuture<T> doExecuteAsync(Request<?> requestEntity, Type responseType);
@@ -38,6 +42,7 @@ public interface RpcInterface {
 	 *
 	 * @param requestEntity RequestEntity
 	 * @param responseType  responseType
+	 * @param <T>           泛型参数
 	 * @return Response
 	 */
 	<T> List<T> doExecuteArray(Request<?> requestEntity, Type responseType);
@@ -47,6 +52,7 @@ public interface RpcInterface {
 	 *
 	 * @param requestEntity RequestEntity
 	 * @param responseType  responseType
+	 * @param <T>           泛型参数
 	 * @return Response
 	 */
 	<T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> requestEntity, Type responseType);

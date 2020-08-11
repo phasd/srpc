@@ -9,15 +9,28 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 /**
- * @description: 单对象返回值
- * @author: phz
- * @create: 2020-07-21 13:27:55
+ * 单对象返回值
+ *
+ * @author phz
+ * @date 2020-07-21 13:27:55
+ * @since V1.0
  */
 public class SimpleRpcResponseExtractor<T> extends AbstractResponseExtractor<T> {
+
+	/**
+	 * 返回值类别
+	 */
 	private final Type responseClass;
 
-	public SimpleRpcResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, Type responseClass) {
-		super(request, postInterceptorList);
+
+	/**
+	 * @param request             请求参数
+	 * @param postInterceptorList 后置拦截器
+	 * @param responseClass       返回值type
+	 * @param secretKey           密钥
+	 */
+	public SimpleRpcResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, Type responseClass, String secretKey) {
+		super(request, postInterceptorList, secretKey);
 		this.responseClass = responseClass;
 	}
 

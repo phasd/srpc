@@ -11,9 +11,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-14 12:34:06
+ * SimpleAutoConfiguration
+ *
+ * @author phz
+ * @date 2020-07-14 12:34:06
+ * @since V1.0
  */
 @Configuration
 @EnableConfigurationProperties({SimpleRpcConfigurationProperties.class})
@@ -25,7 +27,7 @@ public class SimpleAutoConfiguration {
 	@Bean
 	public FilterRegistrationBean<EncryptFromFilter> encryptFormFilter() {
 		FilterRegistrationBean<EncryptFromFilter> filterRegistrationBean = new FilterRegistrationBean<>();
-		filterRegistrationBean.setFilter(new EncryptFromFilter());
+		filterRegistrationBean.setFilter(new EncryptFromFilter(rpcConfig.getSecretKey()));
 		filterRegistrationBean.addUrlPatterns("/*");
 		filterRegistrationBean.setName("EncryptFromFilter");
 		return filterRegistrationBean;
