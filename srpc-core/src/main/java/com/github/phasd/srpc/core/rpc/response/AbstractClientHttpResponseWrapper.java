@@ -9,15 +9,27 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-22 10:55:50
+ * AbstractClientHttpResponseWrapper
+ *
+ * @author phz
+ * @date 2020-07-22 10:55:50
+ * @since V1.0
  */
 public abstract class AbstractClientHttpResponseWrapper implements ClientHttpResponseWrapper {
+	/**
+	 * http返回
+	 */
 	protected final ClientHttpResponse response;
 
+	/**
+	 * PushbackInputStream
+	 */
 	private PushbackInputStream pushbackInputStream;
 
+	/**
+	 * @param response http返回
+	 * @throws IOException IO异常
+	 */
 	AbstractClientHttpResponseWrapper(ClientHttpResponse response) throws IOException {
 		this.response = response;
 		initInputStream(response);
@@ -77,6 +89,13 @@ public abstract class AbstractClientHttpResponseWrapper implements ClientHttpRes
 		this.response.close();
 	}
 
+
+	/**
+	 * 初始化流
+	 *
+	 * @param response 客户端返回
+	 * @throws IOException IO异常
+	 */
 	private void initInputStream(ClientHttpResponse response) throws IOException {
 		InputStream body = response.getBody();
 		this.pushbackInputStream = new PushbackInputStream(body);

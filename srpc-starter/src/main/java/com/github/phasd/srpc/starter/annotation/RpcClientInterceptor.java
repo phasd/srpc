@@ -6,11 +6,16 @@ import org.springframework.cglib.proxy.MethodProxy;
 import java.lang.reflect.Method;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-28 15:49:00
+ * MethodInterceptor
+ *
+ * @author phz
+ * @date 2020-07-28 15:49:00
+ * @since V1.0
  */
 public class RpcClientInterceptor<T> implements MethodInterceptor {
+	/**
+	 * target
+	 */
 	private final RpcClientTarget<T> target;
 
 	public RpcClientInterceptor(RpcClientTarget<T> target) {

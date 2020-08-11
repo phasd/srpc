@@ -1,9 +1,11 @@
 package com.github.phasd.srpc.starter.annotation;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-28 11:33:56
+ * ParameterType
+ *
+ * @author phz
+ * @date 2020-07-28 11:33:56
+ * @since V1.0
  */
 public enum ParameterType {
 	// 头部参数

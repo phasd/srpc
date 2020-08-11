@@ -52,6 +52,14 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		super(rpcConfig);
 	}
 
+	public void getForObject(Request<?> request) {
+		doExecute(request, Void.TYPE);
+	}
+
+	public CompletableFuture<Void> getForObjectAsync(Request<?> request) {
+		return doExecuteAsync(request, Void.TYPE);
+	}
+
 	public <T> T getForObject(Request<?> request, Type responseType) {
 		return doExecute(request, responseType);
 	}
@@ -75,7 +83,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		try {
 			RpcContext.initContext(rpcConfig, request);
 			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(request,
-					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
+					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType, rpcConfig.getSecretKey());
 			return getResponse(request, responseExtractor, responseType);
 		} finally {
 			RpcContext.clear();
@@ -87,7 +95,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		try {
 			RpcContext.initContext(rpcConfig, request);
 			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(request,
-					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
+					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType, rpcConfig.getSecretKey());
 			return getResponse(request, responseExtractor, responseType);
 
 		} finally {
@@ -172,7 +180,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 
 		this.restTemplate = new RestTemplate();
 		restTemplate.setRequestFactory(requestFactory);
-		restTemplate.setInterceptors(Collections.singletonList(new SimpleRpcHttpRequestInterceptor(rpcConfig.isSecret(), simpleRpcConfigRegister.getAllPreInterceptorList())));
+		restTemplate.setInterceptors(Collections.singletonList(new SimpleRpcHttpRequestInterceptor(rpcConfig, simpleRpcConfigRegister.getAllPreInterceptorList())));
 	}
 
 

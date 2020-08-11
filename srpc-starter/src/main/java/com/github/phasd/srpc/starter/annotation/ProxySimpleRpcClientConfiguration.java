@@ -11,9 +11,11 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-27 19:02:48
+ * ProxySimpleRpcClientConfiguration
+ *
+ * @author phz
+ * @date 2020-07-27 19:02:48
+ * @since V1.0
  */
 @ConditionalOnClass({SimpleRpc.class})
 @ConditionalOnBean(SimpleRpc.class)

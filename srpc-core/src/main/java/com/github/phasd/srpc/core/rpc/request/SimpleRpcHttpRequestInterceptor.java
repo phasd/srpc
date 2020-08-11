@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.github.phasd.srpc.core.rpc.CommonWebConstants;
 import com.github.phasd.srpc.core.rpc.CryptContent;
 import com.github.phasd.srpc.core.rpc.RpcContext;
+import com.github.phasd.srpc.core.rpc.SimpleRpcConfigurationProperties;
 import com.github.phasd.srpc.core.rpc.SimpleRpcException;
 import com.github.phasd.srpc.core.rpc.interceptor.RpcPreInterceptor;
 import org.springframework.http.HttpHeaders;
@@ -21,16 +22,29 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @description: 用于RPC调用上下文参数传递
- * @author: phz
- * @create: 2020-07-20 14:16:16
+ * 用于RPC调用上下文参数传递
+ *
+ * @author phz
+ * @date 2020-07-20 14:16:16
+ * @since V1.0
  */
 public class SimpleRpcHttpRequestInterceptor implements ClientHttpRequestInterceptor {
-	private final boolean secret;
+	/**
+	 * 参数配置
+	 */
+	private final SimpleRpcConfigurationProperties rpcConfig;
+
+	/**
+	 * 前置拦截
+	 */
 	private final List<RpcPreInterceptor> preInterceptors;
 
-	public SimpleRpcHttpRequestInterceptor(boolean secret, List<RpcPreInterceptor> preInterceptors) {
-		this.secret = secret;
+	/**
+	 * @param rpcConfig       参数配置
+	 * @param preInterceptors 前置拦截
+	 */
+	public SimpleRpcHttpRequestInterceptor(SimpleRpcConfigurationProperties rpcConfig, List<RpcPreInterceptor> preInterceptors) {
+		this.rpcConfig = rpcConfig;
 		this.preInterceptors = preInterceptors;
 	}
 
@@ -49,12 +63,12 @@ public class SimpleRpcHttpRequestInterceptor implements ClientHttpRequestInterce
 
 		MediaType contentType = headers.getContentType();
 		boolean multipart = MediaType.MULTIPART_FORM_DATA.includes(contentType);
-		if (secret && !multipart) {
+		if (rpcConfig.isSecret() && !multipart) {
 			String source = new String(bytes, StandardCharsets.UTF_8);
 			String encryptContent;
 			try {
 				headers.add(CommonWebConstants.SIMPLE_RPC_SECRET, CommonWebConstants.SIMPLE_RPC_SECRET);
-				encryptContent = CryptContent.getEncryptContent(source, appid);
+				encryptContent = CryptContent.getEncryptContent(source, appid, rpcConfig.getSecretKey());
 			} catch (Exception e) {
 				throw new SimpleRpcException("服务调用的链路上下文加密失败", e);
 			}
@@ -72,6 +86,11 @@ public class SimpleRpcHttpRequestInterceptor implements ClientHttpRequestInterce
 		return clientHttpRequestExecution.execute(httpRequest, bytes);
 	}
 
+
+	/**
+	 * @param httpRequest http 请求
+	 * @param bytes       请求体
+	 */
 	private void handlePreInterceptors(HttpRequest httpRequest, byte[] bytes) {
 		if (CollectionUtil.isEmpty(this.preInterceptors)) {
 			return;

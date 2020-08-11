@@ -1,9 +1,11 @@
 package com.github.phasd.srpc.core.rpc;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-21 13:28:58
+ * 常量定义
+ *
+ * @author phz
+ * @date 2020-07-21 15:34:10
+ * @since V1.0
  */
 public interface CommonWebConstants {
 	String APPID = "appid";

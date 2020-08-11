@@ -23,23 +23,41 @@ import java.util.Objects;
 import java.util.Vector;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-24 13:44:18
+ * EncryptFormHttpServletWrapper
+ *
+ * @author phz
+ * @date 2020-07-24 13:44:18
+ * @since V1.0
  */
 public class EncryptFormHttpServletWrapper extends HttpServletRequestWrapper {
 	private static final String DELIMITERS = "&";
+
+	/**
+	 * 密钥
+	 */
+	private String secretKey;
 
 	/***
 	 *定义参数集合
 	 */
 	private MultiValueMap<String, String> map;
 
-	public EncryptFormHttpServletWrapper(HttpServletRequest request) {
+	/**
+	 * @param request   HttpServletRequest
+	 * @param secretKey 密钥
+	 */
+	public EncryptFormHttpServletWrapper(HttpServletRequest request, String secretKey) {
 		super(request);
 		this.map = init(request);
+		this.secretKey = secretKey;
 	}
 
+	/**
+	 * 初始化MultiValueMap
+	 *
+	 * @param request HttpServletRequest
+	 * @return MultiValueMap<String, String>
+	 */
 	private MultiValueMap<String, String> init(HttpServletRequest request) {
 		String data = request.getParameter(CommonWebConstants.DATA);
 		String sign = request.getParameter(CommonWebConstants.SIGN);
@@ -50,7 +68,7 @@ public class EncryptFormHttpServletWrapper extends HttpServletRequestWrapper {
 		}
 		String appId = request.getHeader(CommonWebConstants.APPID);
 		data = Base64.decodeStr(data, StandardCharsets.UTF_8);
-		String decryptContent = CryptContent.getDecryptContent(data, appId);
+		String decryptContent = CryptContent.getDecryptContent(data, appId, secretKey);
 		String[] pairs = StringUtils.tokenizeToStringArray(decryptContent, DELIMITERS);
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>(pairs.length);
 		for (String pair : pairs) {

@@ -6,15 +6,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-27 16:10:15
+ * RpcClient
+ *
+ * @author phz
+ * @date 2020-07-27 16:10:15
+ * @since V1.0
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface RpcClient {
 
-	// baseUrl
+	/**
+	 * url前缀
+	 */
 	String baseUrl();
 
 }

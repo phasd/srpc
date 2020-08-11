@@ -12,14 +12,21 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-23 08:50:31
+ * RpcThreadPoolExecutor
+ *
+ * @author phz
+ * @date 2020-07-23 08:50:31
+ * @since V1.0
  */
 public class RpcThreadPoolExecutor {
 
+	/**
+	 * 获取线程池
+	 *
+	 * @param rpcConfig 参数配置
+	 * @return ExecutorService
+	 */
 	public static ExecutorService getInstance(SimpleRpcConfigurationProperties rpcConfig) {
 		ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("simple-rpc-thread-%d").build();
 		int corePoolSize = rpcConfig.getCorePoolSize();

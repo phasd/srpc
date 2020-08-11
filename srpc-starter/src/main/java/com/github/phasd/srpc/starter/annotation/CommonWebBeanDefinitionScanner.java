@@ -15,14 +15,30 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-28 09:16:31
+ * BeanDefinitionScanner
+ *
+ * @author phz
+ * @date 2020-07-28 19:08:24
+ * @since V1.0
  */
 public class CommonWebBeanDefinitionScanner extends ClassPathBeanDefinitionScanner {
+	/**
+	 * factoryBeanClass
+	 */
 	private Class<?> factoryBeanClass;
+
+	/**
+	 * 代理模式
+	 */
 	private AdviceMode mode;
 
+
+	/**
+	 * @param registry         BeanDefinitionRegistry
+	 * @param type             扫描的type
+	 * @param factoryBeanClass factoryBeanClass
+	 * @param mode             代理模式
+	 */
 	public CommonWebBeanDefinitionScanner(BeanDefinitionRegistry registry, Class<? extends Annotation> type, Class<?> factoryBeanClass, AdviceMode mode) {
 		super(registry, false);
 		super.addIncludeFilter(new AnnotationTypeFilter(type));
@@ -40,6 +56,12 @@ public class CommonWebBeanDefinitionScanner extends ClassPathBeanDefinitionScann
 		return beanDefinitions;
 	}
 
+
+	/**
+	 * 处理扫描结果
+	 *
+	 * @param beanDefinitions 扫描获取的BeanDefinitionHolder
+	 */
 	private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
 		for (BeanDefinitionHolder holder : beanDefinitions) {
 			GenericBeanDefinition definition = (GenericBeanDefinition) holder.getBeanDefinition();

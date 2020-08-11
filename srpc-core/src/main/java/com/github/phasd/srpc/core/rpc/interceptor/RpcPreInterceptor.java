@@ -5,11 +5,11 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpRequest;
 
 /**
- * 请求拦截器
+ * 请求前置拦截接口
  *
- * @description:
- * @author: phz
- * @create: 2020-07-23 14:39:33
+ * @author phz
+ * @date 2020-07-23 14:39:33
+ * @since V1.0
  */
 public interface RpcPreInterceptor extends Ordered {
 

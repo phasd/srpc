@@ -7,9 +7,11 @@ import java.net.URI;
 import java.util.Map;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-22 08:44:52
+ * AbstractRestRpc
+ *
+ * @author phz
+ * @date 2020-07-22 08:44:52
+ * @since V1.0
  */
 public abstract class AbstractRestRpc implements RpcInterface {
 
@@ -23,11 +25,22 @@ public abstract class AbstractRestRpc implements RpcInterface {
 	 */
 	protected SimpleRpcConfigRegister simpleRpcConfigRegister;
 
+
+	/**
+	 * @param rpcConfig 配置参数
+	 */
 	public AbstractRestRpc(SimpleRpcConfigurationProperties rpcConfig) {
 		this.rpcConfig = rpcConfig;
 		this.simpleRpcConfigRegister = new SimpleRpcConfigRegister();
 	}
 
+
+	/**
+	 * uri 预处理
+	 *
+	 * @param uri uri
+	 * @return 处理后的url
+	 */
 	String getUrl(URI uri) {
 		if (uri == null || StrUtil.isBlank(uri.toString())) {
 			throw new NullPointerException("SimpleRpc 调用 url不能为空");
@@ -35,6 +48,12 @@ public abstract class AbstractRestRpc implements RpcInterface {
 		return getUrl(uri.toString());
 	}
 
+	/**
+	 * url 预处理
+	 *
+	 * @param url uri
+	 * @return 处理后的url
+	 */
 	String getUrl(String url) {
 		if (StrUtil.isBlank(url)) {
 			throw new NullPointerException("SimpleRpc 调用 url不能为空");

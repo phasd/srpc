@@ -10,22 +10,36 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-27 16:10:15
+ * EnableSimpleRpc
+ *
+ * @author phz
+ * @date 2020-07-28 19:08:24
+ * @since V1.0
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Import(ProxySimpleRpcClientConfiguration.class)
 public @interface EnableSimpleRpc {
 
+	/**
+	 * basePackages
+	 */
 	@AliasFor("value")
 	String[] basePackages() default {};
 
+	/**
+	 * basePackages
+	 */
 	@AliasFor("basePackages")
 	String[] value() default {};
 
+	/**
+	 * basePackageClasses
+	 */
 	Class<?>[] basePackageClasses() default {};
 
+	/**
+	 * AdviceMode
+	 */
 	AdviceMode mode() default AdviceMode.PROXY;
 }

@@ -32,21 +32,46 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * @description: 方法执行
- * @author: phz
- * @create: 2020-07-28 10:17:17
+ * 代理方法执行
+ *
+ * @author phz
+ * @date 2020-07-28 10:17:17
+ * @since V1.0
  */
 public class RpcClientMethodHandler {
+	/**
+	 * 方法注解
+	 */
 	private final Rpc rpc;
+
+	/**
+	 * 代理的方法
+	 */
 	private final Method method;
+
+	/**
+	 * 参数的元数据
+	 */
 	private final List<ParameterMetaData> parameterMetaDataList;
 
+	/**
+	 * @param rpc    方法注解
+	 * @param method 代理的方法
+	 */
 	public RpcClientMethodHandler(Rpc rpc, Method method) {
 		this.rpc = rpc;
 		parameterMetaDataList = init(method);
 		this.method = method;
 	}
 
+
+	/**
+	 * 方法执行
+	 *
+	 * @param target target
+	 * @param args   参数
+	 * @return 执行结果
+	 */
 	public Object invoke(RpcClientTarget target, Object[] args) {
 		Request.RequestBuilder builder = getBuilder(target, rpc);
 		Request<?> request;
@@ -85,6 +110,13 @@ public class RpcClientMethodHandler {
 		return doInvoke(request);
 	}
 
+
+	/**
+	 * 同步执行
+	 *
+	 * @param request 请求Request
+	 * @return 返回结果
+	 */
 	private Object doInvoke(Request<?> request) {
 		Type returnType = method.getGenericReturnType();
 		SimpleRpc bean = SpringContextUtils.getBean(SimpleRpc.class);
@@ -96,6 +128,12 @@ public class RpcClientMethodHandler {
 		}
 	}
 
+	/**
+	 * 如果是ParameterizedType 则返回泛型参数的第一个否则返回原type
+	 *
+	 * @param type 返回type
+	 * @return 返回结果
+	 */
 	private Type getResClass(Type type) {
 		if (type instanceof ParameterizedType) {
 			return ((ParameterizedType) type).getActualTypeArguments()[0];
@@ -103,6 +141,12 @@ public class RpcClientMethodHandler {
 		return type;
 	}
 
+	/**
+	 * 异步执行
+	 *
+	 * @param request 请求Request
+	 * @return 返回结果
+	 */
 	private Object doInvokeAsync(Request<?> request) {
 		Type returnType = method.getGenericReturnType();
 		if (returnType != null && !CompletableFuture.class.isAssignableFrom((TypeUtil.getClass(returnType)))) {
@@ -122,6 +166,14 @@ public class RpcClientMethodHandler {
 		}
 	}
 
+	/**
+	 * 如果是ParameterizedType 则返回泛型参数的第一个的泛型参数列表的第一个
+	 * CompletableFuture<String> => String
+	 * CompletableFuture<List<String => 返回String
+	 *
+	 * @param type 返回type
+	 * @return 返回结果
+	 */
 	private Type getResClassAsync(Type type) {
 		if (type instanceof ParameterizedType) {
 			Type first = ((ParameterizedType) type).getActualTypeArguments()[0];
@@ -133,6 +185,13 @@ public class RpcClientMethodHandler {
 		return type;
 	}
 
+	/**
+	 * 路径参数处理
+	 *
+	 * @param builder           RequestBuilder
+	 * @param parameterMetaData 参数元数据
+	 * @param arg               参数
+	 */
 	private void processPath(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
 		if (arg == null) {
 			return;
@@ -145,6 +204,13 @@ public class RpcClientMethodHandler {
 		builder.uriParam(parameterMetaData.getName(), String.valueOf(arg));
 	}
 
+	/**
+	 * 头部参数处理
+	 *
+	 * @param builder           RequestBuilder
+	 * @param parameterMetaData 参数元数据
+	 * @param arg               参数
+	 */
 	private void processHeader(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
 		if (arg == null) {
 			return;
@@ -164,6 +230,11 @@ public class RpcClientMethodHandler {
 		builder.headers(headerMap);
 	}
 
+	/**
+	 * List处理
+	 *
+	 * @param arg 参数
+	 */
 	@SuppressWarnings("unchecked")
 	private List<Object> getList(Object arg) {
 		Class<?> argClass = arg.getClass();
@@ -179,6 +250,13 @@ public class RpcClientMethodHandler {
 		return list;
 	}
 
+	/**
+	 * form参数处理
+	 *
+	 * @param builder           RequestBuilder
+	 * @param parameterMetaData 参数元数据
+	 * @param arg               参数
+	 */
 	private void processParam(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
 		if (arg == null) {
 			return;
@@ -190,10 +268,24 @@ public class RpcClientMethodHandler {
 		builder.formParams(multiValueMap);
 	}
 
+	/**
+	 * body参数处理
+	 *
+	 * @param builder           RequestBuilder
+	 * @param parameterMetaData 参数元数据
+	 * @param arg               参数
+	 */
 	private void processBody(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
 		builder.setBody(arg);
 	}
 
+	/**
+	 * multipart 参数处理
+	 *
+	 * @param builder           RequestBuilder
+	 * @param parameterMetaData 参数元数据
+	 * @param arg               参数
+	 */
 	private void processPart(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
 		if (arg == null) {
 			return;
@@ -212,6 +304,13 @@ public class RpcClientMethodHandler {
 		builder.formParams(multiValueMap);
 	}
 
+	/**
+	 * 构建RequestBuilder
+	 *
+	 * @param target target
+	 * @param rpc    方法注解
+	 * @return RequestBuilder
+	 */
 	private Request.RequestBuilder getBuilder(RpcClientTarget target, Rpc rpc) {
 		String baseUrl = target.getBaseUrl();
 		String url = rpc.url();
@@ -227,6 +326,12 @@ public class RpcClientMethodHandler {
 		return new Request.RequestBuilder(httpMethod, sb.toString());
 	}
 
+	/**
+	 * 初始化方法元数据
+	 *
+	 * @param method 代理方法
+	 * @return 方法参数元数据
+	 */
 	private List<ParameterMetaData> init(Method method) {
 		Parameter[] parameters = method.getParameters();
 		if (ArrayUtil.isEmpty(parameters)) {

@@ -12,11 +12,27 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-24 13:40:17
+ * EncryptFromFilter
+ *
+ * @author phz
+ * @date 2020-07-24 13:40:17
+ * @since V1.0
  */
 public class EncryptFromFilter implements Filter {
+
+	/**
+	 * 密钥
+	 */
+	private String secretKey;
+
+
+	/**
+	 * @param secretKey 密钥
+	 */
+	public EncryptFromFilter(String secretKey) {
+		this.secretKey = secretKey;
+	}
+
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -28,7 +44,7 @@ public class EncryptFromFilter implements Filter {
 		String dbcSecret = request.getHeader(CommonWebConstants.SIMPLE_RPC_SECRET);
 		String dbcFromSecret = request.getHeader(CommonWebConstants.SIMPLE_RPC_SECRET_FROM);
 		if (CommonWebConstants.SIMPLE_RPC_SECRET.equals(dbcSecret) && CommonWebConstants.SIMPLE_RPC_SECRET_FROM.equals(dbcFromSecret)) {
-			request = new EncryptFormHttpServletWrapper(request);
+			request = new EncryptFormHttpServletWrapper(request, secretKey);
 		}
 		filterChain.doFilter(request, servletResponse);
 	}

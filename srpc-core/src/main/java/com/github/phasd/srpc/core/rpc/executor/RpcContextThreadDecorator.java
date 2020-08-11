@@ -7,9 +7,11 @@ import org.springframework.core.task.TaskDecorator;
 import java.util.Map;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-23 10:54:39
+ * 异步上下文参数传递
+ *
+ * @author phz
+ * @date 2020-07-23 10:54:39
+ * @since V1.0
  */
 public class RpcContextThreadDecorator implements TaskDecorator {
 	@Override
