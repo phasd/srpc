@@ -9,8 +9,8 @@ import cn.hutool.core.util.TypeUtil;
 import com.github.phasd.srpc.core.rpc.RpcUtils;
 import com.github.phasd.srpc.core.rpc.SimpleRpc;
 import com.github.phasd.srpc.core.rpc.SimpleRpcException;
+import com.github.phasd.srpc.core.rpc.SpringContextUtils;
 import com.github.phasd.srpc.core.rpc.request.Request;
-import com.github.phasd.srpc.starter.SpringContextUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
@@ -28,7 +28,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -55,6 +57,16 @@ public class RpcClientMethodHandler {
 	private final List<ParameterMetaData> parameterMetaDataList;
 
 	/**
+	 * bodyPartFlag
+	 */
+	private boolean bodyPartFlag = false;
+
+	/**
+	 * part params
+	 */
+	private Map<String, Object> bodyPartMap;
+
+	/**
 	 * @param rpc    方法注解
 	 * @param method 代理的方法
 	 */
@@ -75,7 +87,7 @@ public class RpcClientMethodHandler {
 	public Object invoke(RpcClientTarget target, Object[] args) {
 		Request.RequestBuilder builder = getBuilder(target, rpc);
 		Request<?> request;
-		if (ArrayUtil.isEmpty(args)) {
+		if (ArrayUtil.isEmpty(args) || CollectionUtil.isEmpty(parameterMetaDataList)) {
 			request = builder.build();
 		} else {
 			for (int i = 0; i < args.length; i++) {
@@ -97,6 +109,8 @@ public class RpcClientMethodHandler {
 					case PATH:
 						processPath(builder, parameterMetaData, arg);
 						break;
+					case BODY_PART:
+						processBodyPart(builder, parameterMetaData, arg);
 					default:
 						break;
 				}
@@ -120,12 +134,14 @@ public class RpcClientMethodHandler {
 	private Object doInvoke(Request<?> request) {
 		Type returnType = method.getGenericReturnType();
 		SimpleRpc bean = SpringContextUtils.getBean(SimpleRpc.class);
+		if (returnType != null && Resource.class.isAssignableFrom((TypeUtil.getClass(returnType)))) {
+			return bean.doExecuteForResource(request);
+		}
 		if (returnType != null && List.class.isAssignableFrom(TypeUtil.getClass(returnType))) {
 			Type retType = getResClass(method.getGenericReturnType());
 			return bean.getForList(request, retType);
-		} else {
-			return bean.getForObject(request, returnType);
 		}
+		return bean.getForObject(request, returnType);
 	}
 
 	/**
@@ -158,12 +174,14 @@ public class RpcClientMethodHandler {
 			return bean.getForObjectAsync(request, returnType);
 		}
 		Type resType = getResClass(method.getGenericReturnType());
+		if (Resource.class.isAssignableFrom((TypeUtil.getClass(resType)))) {
+			return bean.doExecuteForResourceAsync(request);
+		}
 		if (List.class.isAssignableFrom(TypeUtil.getClass(resType))) {
 			resType = getResClassAsync(method.getGenericReturnType());
 			return bean.getForListAsync(request, resType);
-		} else {
-			return bean.getForObjectAsync(request, resType);
 		}
+		return bean.getForObjectAsync(request, resType);
 	}
 
 	/**
@@ -184,6 +202,20 @@ public class RpcClientMethodHandler {
 		}
 		return type;
 	}
+
+	/**
+	 * BodyPart参数处理
+	 *
+	 * @param builder           RequestBuilder
+	 * @param parameterMetaData 参数元数据
+	 * @param arg               参数
+	 */
+	private void processBodyPart(Request.RequestBuilder builder, ParameterMetaData parameterMetaData, Object arg) {
+		if (bodyPartFlag) {
+			bodyPartMap.put(parameterMetaData.getName(), arg);
+		}
+	}
+
 
 	/**
 	 * 路径参数处理
@@ -313,12 +345,20 @@ public class RpcClientMethodHandler {
 	 */
 	private Request.RequestBuilder getBuilder(RpcClientTarget target, Rpc rpc) {
 		String baseUrl = target.getBaseUrl();
+		RpcClient rpcClient = target.getRpcClient();
+		String serviceId = rpcClient.serviceId();
 		String url = rpc.url();
+
+		serviceId = RpcUtils.trimUrlDelimiter(serviceId);
+		baseUrl = RpcUtils.trimUrlDelimiter(baseUrl);
+		url = RpcUtils.trimUrlDelimiter(url);
 		HttpMethod httpMethod = rpc.method();
 		Assert.isFalse(StrUtil.isBlank(baseUrl), "%s 的baseUrl不能为空", target.getProxyInterface().getName());
+		Assert.isFalse(StrUtil.isBlank(serviceId), "%s-%s 的serviceId不能为空", target.getProxyInterface().getName(), method.getName());
 		Assert.isFalse(StrUtil.isBlank(url), "%s-%s 的url不能为空", target.getProxyInterface().getName(), method.getName());
 
 		StringBuilder sb = new StringBuilder();
+		sb.append(serviceId);
 		sb.append(RpcUtils.URL_DELIMITER);
 		sb.append(RpcUtils.trimUrlDelimiter(baseUrl));
 		sb.append(RpcUtils.URL_DELIMITER);
@@ -350,6 +390,9 @@ public class RpcClientMethodHandler {
 			}
 
 			if (parameter.isAnnotationPresent(RequestParam.class)) {
+				if (bodyPartFlag) {
+					throw new SimpleRpcException("含有BodyPart的接口不能拥有RequestParam参数的声明其他的");
+				}
 				parameterMetaData.setParamterType(ParameterType.PARAM);
 				RequestParam param = AnnotationUtils.findAnnotation(parameter, RequestParam.class);
 				parameterMetaData.setName(param.name());
@@ -359,6 +402,9 @@ public class RpcClientMethodHandler {
 
 
 			if (parameter.isAnnotationPresent(RequestPart.class)) {
+				if (bodyPartFlag) {
+					throw new SimpleRpcException("含有BodyPart的接口不能拥有RequestPart参数的声明其他的");
+				}
 				parameterMetaData.setParamterType(ParameterType.PART);
 				RequestPart part = AnnotationUtils.findAnnotation(parameter, RequestPart.class);
 				parameterMetaData.setName(part.name());
@@ -367,6 +413,9 @@ public class RpcClientMethodHandler {
 			}
 
 			if (parameter.isAnnotationPresent(RequestBody.class)) {
+				if (bodyPartFlag) {
+					throw new SimpleRpcException("含有RequestBodyPart的接口不能拥有RequestBody参数的声明其他的");
+				}
 				parameterMetaData.setParamterType(ParameterType.BODY);
 				String name = parameter.getName();
 				parameterMetaData.setName(name);
@@ -378,6 +427,15 @@ public class RpcClientMethodHandler {
 				parameterMetaData.setParamterType(ParameterType.PATH);
 				PathVariable path = AnnotationUtils.findAnnotation(parameter, PathVariable.class);
 				parameterMetaData.setName(path.name());
+				list.add(parameterMetaData);
+			}
+
+			if (parameter.isAnnotationPresent(BodyPart.class)) {
+				bodyPartFlag = true;
+				bodyPartMap = new HashMap<>();
+				parameterMetaData.setParamterType(ParameterType.BODY_PART);
+				BodyPart bodyPart = AnnotationUtils.findAnnotation(parameter, BodyPart.class);
+				parameterMetaData.setName(bodyPart.name());
 				list.add(parameterMetaData);
 			}
 		}

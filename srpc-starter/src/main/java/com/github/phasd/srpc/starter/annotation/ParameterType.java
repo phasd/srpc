@@ -17,5 +17,7 @@ public enum ParameterType {
 	// 路径参数
 	PATH,
 	// 体参数
-	BODY
+	BODY,
+	// BODY_PART
+	BODY_PART
 }

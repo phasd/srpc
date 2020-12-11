@@ -5,7 +5,7 @@
     <parent>
         <artifactId>srpc</artifactId>
         <groupId>com.github.phasd</groupId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </parent>
     <name>srpc-core</name>
     <description>a simple http for RestTemplate</description>
@@ -17,6 +17,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jsr305</artifactId>
+                    <groupId>com.google.code.findbugs</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

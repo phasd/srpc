@@ -25,10 +25,9 @@ public class SimpleRpcArrayResponseExtractor<T> extends AbstractResponseExtracto
 	 * @param request             请求参数
 	 * @param postInterceptorList 后置拦截器
 	 * @param responseClass       返回值type
-	 * @param secretKey           密钥
 	 */
-	public SimpleRpcArrayResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, Type responseClass, String secretKey) {
-		super(request, postInterceptorList, secretKey);
+	public SimpleRpcArrayResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, Type responseClass) {
+		super(request, postInterceptorList);
 		this.responseClass = responseClass;
 	}
 

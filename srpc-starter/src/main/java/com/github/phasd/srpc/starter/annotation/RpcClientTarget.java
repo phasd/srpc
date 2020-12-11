@@ -21,20 +21,19 @@ public class RpcClientTarget<T> {
 	private final Class<T> proxyInterface;
 
 	/**
-	 * 前缀
+	 * 代理类注解
 	 */
-	private final String baseUrl;
-
+	private final RpcClient rpcClient;
 
 	/**
 	 * 方法对应的处理器
 	 */
 	private final Map<Method, RpcClientMethodHandler> dispatch;
 
-	public RpcClientTarget(Class<T> proxyInterface, String baseUrl, Map<Method, RpcClientMethodHandler> dispatch) {
+	public RpcClientTarget(Class<T> proxyInterface, RpcClient rpcClient, Map<Method, RpcClientMethodHandler> dispatch) {
 		this.proxyInterface = proxyInterface;
-		this.baseUrl = baseUrl;
 		this.dispatch = dispatch;
+		this.rpcClient = rpcClient;
 	}
 
 	public Class getProxyInterface() {
@@ -42,7 +41,11 @@ public class RpcClientTarget<T> {
 	}
 
 	public String getBaseUrl() {
-		return baseUrl;
+		return rpcClient.baseUrl();
+	}
+
+	public RpcClient getRpcClient() {
+		return rpcClient;
 	}
 
 	public Map<Method, RpcClientMethodHandler> getDispatch() {
@@ -51,9 +54,10 @@ public class RpcClientTarget<T> {
 
 	/**
 	 * 代理方法的执行
-	 * @param proxy 被代理的对象
+	 *
+	 * @param proxy  被代理的对象
 	 * @param method 方法
-	 * @param args 参数
+	 * @param args   参数
 	 * @return 执行结果
 	 */
 	public Object invoke(Object proxy, Method method, Object[] args) {

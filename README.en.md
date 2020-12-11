@@ -15,7 +15,7 @@ Software architecture description
  <dependency>
     <artifactId>srpc-starter</artifactId>
     <groupId>com.github.phasd</groupId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -50,16 +50,16 @@ public class Starter {
 	}
 }
 
-@RpcClient(baseUrl = "test")
+@RpcClient(baseUrl = "/", serviceId="test")
 public interface TestRpc {
-	@Rpc(url = "test/pathtest/{id}/{name}", method = HttpMethod.POST)
+	@Rpc(url = "pathtest/{id}/{name}", method = HttpMethod.POST)
 	String pathtest(@PathVariable("id") String id, @PathVariable("name") String name);
 
 
-	@Rpc(url = "test/paramtest", method = HttpMethod.POST)
+	@Rpc(url = "paramtest", method = HttpMethod.POST)
 	String paramtest(@RequestParam("id") List<String> id, @RequestParam("name") List<String> name, @RequestPart("file") Resource file);
 
-	@Rpc(url = "test/bodytest", method = HttpMethod.POST)
+	@Rpc(url = "bodytest", method = HttpMethod.POST)
 	UserEntity bodytest(@RequestBody UserEntity user);
 }
 

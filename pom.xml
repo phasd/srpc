@@ -9,7 +9,7 @@
     <name>srpc</name>
     <description>a simple http for RestTemplate</description>
     <url>https://github.com/phasd/srpc</url>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <modules>
         <module>srpc-core</module>
         <module>srpc-starter</module>
@@ -19,8 +19,8 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <st.version>2.0.2.RELEASE</st.version>
-        <sc.version>Finchley.SR2</sc.version>
+        <st.version>2.3.0.RELEASE</st.version>
+        <sc.version>Hoxton.SR8</sc.version>
         <hutool.version>5.1.0</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.targetEncoding>UTF-8</project.build.targetEncoding>

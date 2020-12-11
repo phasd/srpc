@@ -1,15 +1,9 @@
 package com.github.phasd.srpc.core.rpc;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.extra.servlet.ServletUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.github.phasd.srpc.core.rpc.request.Request;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import com.google.common.collect.Maps;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +15,7 @@ import java.util.Map;
  * @since V1.0
  */
 public class RpcContext {
-
+	private static final String APP_ID = "appId";
 	/**
 	 * 请求头部信息
 	 */
@@ -114,17 +108,9 @@ public class RpcContext {
 	 * @param currentRequest 当前请求Request
 	 */
 	static void initContext(SimpleRpcConfigurationProperties rpcConfig, Request currentRequest) {
-		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		if (requestAttributes != null) {
-			HttpServletRequest request = requestAttributes.getRequest();
-			Map<String, String> headerMap = ServletUtil.getHeaderMap(request);
-			String jsonStr = JSON.toJSONString(headerMap);
-			Map<String, String> copyHeadMap = JSON.parseObject(jsonStr, new TypeReference<Map<String, String>>() {});
-			copyHeadMap.putIfAbsent(CommonWebConstants.APPID, rpcConfig.getAppid());
-			RpcContext.setHeaders(copyHeadMap);
-		} else {
-			RpcContext.setHeaders(Collections.singletonMap(CommonWebConstants.APPID, rpcConfig.getAppid()));
-		}
+		final HashMap<String, String> paramsMap = Maps.newHashMap();
+		paramsMap.put(APP_ID, rpcConfig.getAppId());
+		RpcContext.setHeaders(paramsMap);
 		RpcContext.setRequest(currentRequest);
 	}
 }

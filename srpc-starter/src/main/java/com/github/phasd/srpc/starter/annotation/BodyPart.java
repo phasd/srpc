@@ -1,28 +1,25 @@
 package com.github.phasd.srpc.starter.annotation;
 
+import org.springframework.core.annotation.AliasFor;
+
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * RpcClient
- *
  * @author phz
- * @date 2020-07-27 16:10:15
+ * @date 2020-11-09 16:43:42
  * @since V1.0
  */
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface RpcClient {
+@Target({ElementType.PARAMETER})
+@Documented
+public @interface BodyPart {
+	@AliasFor("value")
+	String name() default "";
 
-	/**
-	 * url前缀
-	 */
-	String baseUrl();
-
-	/**
-	 * serviceId- 服务前缀-注册中心模式下为服务Id
-	 */
-	String serviceId();
+	@AliasFor("name")
+	String value() default "";
 }

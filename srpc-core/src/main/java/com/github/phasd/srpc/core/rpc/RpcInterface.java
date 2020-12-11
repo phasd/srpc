@@ -2,6 +2,7 @@ package com.github.phasd.srpc.core.rpc;
 
 
 import com.github.phasd.srpc.core.rpc.request.Request;
+import org.springframework.core.io.Resource;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -56,4 +57,20 @@ public interface RpcInterface {
 	 * @return Response
 	 */
 	<T> CompletableFuture<List<T>> doExecuteArrayAsync(Request<?> requestEntity, Type responseType);
+
+	/**
+	 * 获取原字节流
+	 *
+	 * @param requestEntity RequestEntity
+	 * @return Resource
+	 */
+	Resource doExecuteForResource(Request<?> requestEntity);
+
+	/**
+	 * 异步获取原字节流
+	 *
+	 * @param requestEntity RequestEntity
+	 * @return Resource
+	 */
+	CompletableFuture<Resource> doExecuteForResourceAsync(Request<?> requestEntity);
 }

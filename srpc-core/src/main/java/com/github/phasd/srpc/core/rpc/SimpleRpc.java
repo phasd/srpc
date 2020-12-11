@@ -6,6 +6,7 @@ import com.github.phasd.srpc.core.rpc.executor.RpcThreadPoolExecutor;
 import com.github.phasd.srpc.core.rpc.interceptor.SimpleRpcConfigurer;
 import com.github.phasd.srpc.core.rpc.request.Request;
 import com.github.phasd.srpc.core.rpc.request.SimpleRpcHttpRequestInterceptor;
+import com.github.phasd.srpc.core.rpc.request.SkipLoadBalancedRequestInterceptor;
 import com.github.phasd.srpc.core.rpc.response.SimpleRpcArrayResponseExtractor;
 import com.github.phasd.srpc.core.rpc.response.SimpleRpcResponseExtractor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,19 +18,22 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,13 +47,13 @@ import java.util.concurrent.ExecutorService;
  */
 @Slf4j
 public class SimpleRpc extends AbstractRestRpc implements InitializingBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, DisposableBean {
-
 	private ExecutorService executor;
 	private ApplicationContext applicationContext;
-	private RestTemplate restTemplate;
+	private final RestTemplate restTemplate;
 
-	public SimpleRpc(SimpleRpcConfigurationProperties rpcConfig) {
+	public SimpleRpc(SimpleRpcConfigurationProperties rpcConfig, RestTemplate restTemplate) {
 		super(rpcConfig);
+		this.restTemplate = restTemplate;
 	}
 
 	public void getForObject(Request<?> request) {
@@ -83,7 +87,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		try {
 			RpcContext.initContext(rpcConfig, request);
 			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(request,
-					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType, rpcConfig.getSecretKey());
+					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
 			return getResponse(request, responseExtractor, responseType);
 		} finally {
 			RpcContext.clear();
@@ -95,7 +99,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		try {
 			RpcContext.initContext(rpcConfig, request);
 			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(request,
-					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType, rpcConfig.getSecretKey());
+					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
 			return getResponse(request, responseExtractor, responseType);
 
 		} finally {
@@ -111,7 +115,6 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 				try {
 					return doExecute(request, responseType);
 				} catch (Exception e) {
-					log.error("SimpleRpc 服务调用异常:", e);
 					throw new SimpleRpcException(e);
 				}
 			}, executor);
@@ -128,7 +131,32 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 				try {
 					return doExecuteArray(request, responseType);
 				} catch (Exception e) {
-					log.error("SimpleRpc 服务调用异常:", e);
+					throw new SimpleRpcException(e);
+				}
+			}, executor);
+		} finally {
+			RpcContext.clear();
+		}
+	}
+
+	@Override
+	public Resource doExecuteForResource(Request<?> request) {
+		try {
+			RpcContext.initContext(rpcConfig, request);
+			return getInputStreamResponse(request);
+		} finally {
+			RpcContext.clear();
+		}
+	}
+
+	@Override
+	public CompletableFuture<Resource> doExecuteForResourceAsync(Request<?> request) {
+		try {
+			RpcContext.initContext(rpcConfig, request);
+			return CompletableFuture.supplyAsync(() -> {
+				try {
+					return getInputStreamResponse(request);
+				} catch (Exception e) {
 					throw new SimpleRpcException(e);
 				}
 			}, executor);
@@ -173,16 +201,11 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 	}
 
 	private void initRestTemplate() {
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-		requestFactory.setConnectTimeout(rpcConfig.getConnectTimeout());
-		requestFactory.setConnectionRequestTimeout(rpcConfig.getConnectionRequestTimeout());
-		requestFactory.setReadTimeout(rpcConfig.getSocketTimeout());
-
-		this.restTemplate = new RestTemplate();
-		restTemplate.setRequestFactory(requestFactory);
-		restTemplate.setInterceptors(Collections.singletonList(new SimpleRpcHttpRequestInterceptor(rpcConfig, simpleRpcConfigRegister.getAllPreInterceptorList())));
+		List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
+		interceptors.add(0, new SkipLoadBalancedRequestInterceptor(rpcConfig));
+		interceptors.add(0, new SimpleRpcHttpRequestInterceptor(rpcConfig, simpleRpcConfigRegister.getAllPreInterceptorList()));
+		restTemplate.setInterceptors(interceptors);
 	}
-
 
 	private void init() {
 		if (rpcConfig == null) {
@@ -198,6 +221,40 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		RpcRequestCallback rpcRequestCallback = new RpcRequestCallback(requestEntity, httpEntity, responseType, restTemplate.getMessageConverters());
 		return restTemplate.execute(getUrl(request.getUrl()), request.getHttpMethod(), rpcRequestCallback,
 				responseExtractor);
+	}
+
+	private Resource getInputStreamResponse(Request<?> request) {
+		checkRequest(request);
+		String url = getUrl(request.getUrl());
+		HttpEntity<?> httpEntity = getBodyOrFormEntity(request);
+		final ResponseEntity<Resource> responseEntity = restTemplate.exchange(url, request.getHttpMethod(), httpEntity, Resource.class);
+		if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+			return responseEntity.getBody();
+		}
+		throw new HttpClientErrorException(responseEntity.getStatusCode());
+	}
+
+	private HttpEntity<?> getBodyEntity(Request<?> request) {
+		if (formParam(request)) {
+			return null;
+		}
+		MultiValueMap<String, String> headers = request.getHeaders();
+		if (headers == null) {
+			headers = new LinkedMultiValueMap<>();
+		}
+		return new HttpEntity<>(request.getBody(), headers);
+	}
+
+	private HttpEntity<?> getBodyOrFormEntity(Request<?> request) {
+		HttpEntity<?> httpEntity = getHttpEntity(request);
+		if (httpEntity != null) {
+			return httpEntity;
+		}
+		httpEntity = getBodyEntity(request);
+		if (httpEntity != null) {
+			return httpEntity;
+		}
+		return new HttpEntity<>(request.getHeaders());
 	}
 
 	private void checkRequest(Request<?> request) {
