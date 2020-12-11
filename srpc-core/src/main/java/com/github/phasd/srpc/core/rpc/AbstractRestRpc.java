@@ -98,7 +98,10 @@ public abstract class AbstractRestRpc implements RpcInterface {
 
 		if (Boolean.TRUE.equals(rpcConfig.isEnableRegister())) {
 			String contextPath = contextPathCache.get(key, () -> {
-				LoadBalancerClient loadBalancerClient = SpringContextUtils.getBean(LoadBalancerClient.class);
+				LoadBalancerClient loadBalancerClient = getLoadBalancerClient();
+				if (loadBalancerClient == null) {
+					throw new SimpleRpcException("Register 模式需要 LoadBalancerClient");
+				}
 				ServiceInstance chooseInstance = loadBalancerClient.choose(key);
 				if (chooseInstance == null) {
 					throw new SimpleRpcException(String.format("对于服务Id:[%s]未找到可用的服务实例", key));
@@ -121,4 +124,6 @@ public abstract class AbstractRestRpc implements RpcInterface {
 		}
 		return url;
 	}
+
+	protected abstract LoadBalancerClient getLoadBalancerClient();
 }

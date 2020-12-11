@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
@@ -41,9 +42,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
- * @description:
- * @author: phz
- * @create: 2020-07-20 11:53:20
+ * @author phz
+ * @date 2020-07-28 11:48:55
+ * @since V1.0
  */
 @Slf4j
 public class SimpleRpc extends AbstractRestRpc implements InitializingBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, DisposableBean {
@@ -86,8 +87,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 	public <T> T doExecute(Request<?> request, Type responseType) {
 		try {
 			RpcContext.initContext(rpcConfig, request);
-			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(request,
-					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
+			SimpleRpcResponseExtractor<T> responseExtractor = new SimpleRpcResponseExtractor<>(request, simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
 			return getResponse(request, responseExtractor, responseType);
 		} finally {
 			RpcContext.clear();
@@ -98,8 +98,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 	public <T> List<T> doExecuteArray(Request<?> request, Type responseType) {
 		try {
 			RpcContext.initContext(rpcConfig, request);
-			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(request,
-					simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
+			SimpleRpcArrayResponseExtractor<T> responseExtractor = new SimpleRpcArrayResponseExtractor<>(request, simpleRpcConfigRegister.getAllPostInterceptorList(), responseType);
 			return getResponse(request, responseExtractor, responseType);
 
 		} finally {
@@ -219,8 +218,7 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 		RequestEntity<?> requestEntity = getRequestEntity(request);
 		HttpEntity<?> httpEntity = getHttpEntity(request);
 		RpcRequestCallback rpcRequestCallback = new RpcRequestCallback(requestEntity, httpEntity, responseType, restTemplate.getMessageConverters());
-		return restTemplate.execute(getUrl(request.getUrl()), request.getHttpMethod(), rpcRequestCallback,
-				responseExtractor);
+		return restTemplate.execute(getUrl(request.getUrl()), request.getHttpMethod(), rpcRequestCallback, responseExtractor);
 	}
 
 	private Resource getInputStreamResponse(Request<?> request) {
@@ -291,5 +289,10 @@ public class SimpleRpc extends AbstractRestRpc implements InitializingBean, Appl
 
 	private boolean formParam(Request<?> request) {
 		return Objects.nonNull(request.getFormParam());
+	}
+
+	@Override
+	protected LoadBalancerClient getLoadBalancerClient() {
+		return applicationContext.getBean(LoadBalancerClient.class);
 	}
 }

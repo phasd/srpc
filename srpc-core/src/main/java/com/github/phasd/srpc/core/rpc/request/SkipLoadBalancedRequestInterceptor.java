@@ -112,16 +112,11 @@ public class SkipLoadBalancedRequestInterceptor implements ClientHttpRequestInte
 			return;
 		}
 		final MediaType springContentType = headers.getContentType();
-		if (MediaType.APPLICATION_FORM_URLENCODED.includes(springContentType) || MediaType.MULTIPART_FORM_DATA.includes(springContentType)) {
+		if (MediaType.APPLICATION_FORM_URLENCODED.includes(springContentType) && HttpMethod.GET.equals(request.getMethod())) {
 			final String formParam = new String(body, StandardCharsets.UTF_8);
 			final List<NameValuePair> parametersList = getParameters(formParam);
-			if (HttpMethod.GET.equals(request.getMethod())) {
-				String getParams = EntityUtils.toString(new UrlEncodedFormEntity(parametersList, Consts.UTF_8));
-				requestBuilder.setUri(request.getURI().toString() + "?" + getParams);
-			} else {
-				requestBuilder.setUri(request.getURI());
-				requestBuilder.setEntity(new UrlEncodedFormEntity(parametersList, StandardCharsets.UTF_8));
-			}
+			String getParams = EntityUtils.toString(new UrlEncodedFormEntity(parametersList, Consts.UTF_8));
+			requestBuilder.setUri(request.getURI().toString() + "?" + getParams);
 			return;
 		}
 		requestBuilder.setUri(request.getURI());
@@ -134,8 +129,7 @@ public class SkipLoadBalancedRequestInterceptor implements ClientHttpRequestInte
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {
 				String headerValue = StringUtils.collectionToDelimitedString(headerValues, "; ");
 				requestBuilder.addHeader(headerName, headerValue);
-			} else if (!HTTP.CONTENT_LEN.equalsIgnoreCase(headerName) &&
-					!HTTP.TRANSFER_ENCODING.equalsIgnoreCase(headerName)) {
+			} else if (!HTTP.CONTENT_LEN.equalsIgnoreCase(headerName) && !HTTP.TRANSFER_ENCODING.equalsIgnoreCase(headerName)) {
 				for (String headerValue : headerValues) {
 					requestBuilder.addHeader(headerName, headerValue);
 				}

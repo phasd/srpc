@@ -9,7 +9,7 @@ import cn.hutool.core.util.TypeUtil;
 import com.github.phasd.srpc.core.rpc.RpcUtils;
 import com.github.phasd.srpc.core.rpc.SimpleRpc;
 import com.github.phasd.srpc.core.rpc.SimpleRpcException;
-import com.github.phasd.srpc.core.rpc.SpringContextUtils;
+import com.github.phasd.srpc.starter.SpringContextUtils;
 import com.github.phasd.srpc.core.rpc.request.Request;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.io.Resource;
