@@ -29,9 +29,9 @@ public class SimpleRpcConfigurationProperties {
 	private boolean enableProxy = false;
 
 	/**
-	 * 是否启用本地代理 默认APP_ID
+	 * 默认APP_ID
 	 */
-	private String appid = "simple-rpc";
+	private String appId = "simple-rpc";
 
 	/**
 	 * 本地代理
@@ -59,11 +59,6 @@ public class SimpleRpcConfigurationProperties {
 	private boolean staleConnectionCheckEnabled = true;
 
 	/**
-	 * 参数是否加密处理
-	 */
-	private boolean secret;
-
-	/**
 	 * 异步线程池 核心线程数
 	 */
 	private int corePoolSize = 5;
@@ -83,5 +78,9 @@ public class SimpleRpcConfigurationProperties {
 	 */
 	private long aliveTime = 5;
 
-	private String secretKey = "1234567890abcdefghijklmnopqrstuvwxyz@";
+	// 否启用服务注册中心模式
+	private boolean enableRegister = false;
+
+	// 转发是否带上包含serviceId
+	private boolean withServiceId = false;
 }

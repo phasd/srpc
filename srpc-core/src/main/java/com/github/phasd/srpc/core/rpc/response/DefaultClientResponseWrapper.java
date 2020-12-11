@@ -11,8 +11,8 @@ import java.io.IOException;
  * @date 2020-07-22 10:53:15
  * @since V1.0
  */
-public class NoSecretClientResponseWrapper extends AbstractClientHttpResponseWrapper {
-	public NoSecretClientResponseWrapper(ClientHttpResponse response) throws IOException {
+public class DefaultClientResponseWrapper extends AbstractClientHttpResponseWrapper {
+	public DefaultClientResponseWrapper(ClientHttpResponse response) throws IOException {
 		super(response);
 	}
 }

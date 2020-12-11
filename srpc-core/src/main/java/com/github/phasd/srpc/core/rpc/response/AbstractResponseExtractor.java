@@ -5,8 +5,6 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.SimpleCache;
 import cn.hutool.core.util.ArrayUtil;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
-import com.github.phasd.srpc.core.rpc.CommonWebConstants;
-import com.github.phasd.srpc.core.rpc.RpcContext;
 import com.github.phasd.srpc.core.rpc.interceptor.RpcPostInterceptor;
 import com.github.phasd.srpc.core.rpc.request.Request;
 import org.springframework.http.HttpHeaders;
@@ -45,28 +43,28 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 	private final Request request;
 
 	/**
-	 * 密钥
-	 */
-	private String secretKey;
-
-	/**
 	 * @param request             原始Request
 	 * @param postInterceptorList 后置拦截器
-	 * @param secretKey           密钥
 	 */
-	public AbstractResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList, String secretKey) {
+	AbstractResponseExtractor(Request request, List<RpcPostInterceptor> postInterceptorList) {
 		this.request = request;
 		this.postInterceptorList = postInterceptorList;
-		this.secretKey = secretKey;
 	}
 
 	@Override
 	public T extractData(ClientHttpResponse response) throws IOException {
-		String dbcSecret = response.getHeaders().getFirst(CommonWebConstants.SIMPLE_RPC_SECRET);
-		if (!CommonWebConstants.SIMPLE_RPC_SECRET.equals(dbcSecret)) {
-			return extractData(response, false);
+		ClientHttpResponseWrapper responseWrapper = new DefaultClientResponseWrapper(response);
+		if (!responseWrapper.hasMessageBody() || responseWrapper.hasEmptyMessageBody()) {
+			return null;
 		}
-		return extractData(response, true);
+		InputStream body = responseWrapper.getBody();
+		String readContent = IoUtil.read(body, StandardCharsets.UTF_8);
+
+		readContent = handlePostInterceptors(response.getHeaders(), readContent);
+		if (readContent == null) {
+			return null;
+		}
+		return getRes(readContent);
 	}
 
 
@@ -84,7 +82,7 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 	 * @param type 返回值类型
 	 * @return 返回值的type
 	 */
-	protected Type getOuterType(Type type) {
+	Type getOuterType(Type type) {
 		Type cachedType = TYPE_CACHE.get(type);
 		if (cachedType == null) {
 			return TYPE_CACHE.put(type, completeRealType(type));
@@ -111,36 +109,6 @@ public abstract class AbstractResponseExtractor<T> implements ResponseExtractor<
 			return new ParameterizedTypeImpl(argumentTypeArr, null, parameterizedType.getRawType());
 		}
 		return type;
-	}
-
-	/**
-	 * 抽取返回值
-	 *
-	 * @param response 返回
-	 * @param secret   是否是加密
-	 * @return 序列化后的返回结果
-	 * @throws IOException IO异常
-	 */
-	private T extractData(ClientHttpResponse response, boolean secret) throws IOException {
-		ClientHttpResponseWrapper responseWrapper;
-		if (secret) {
-			String appId = RpcContext.getHeader(CommonWebConstants.APPID);
-			responseWrapper = new SecretClientResponseWrapper(response, appId, secretKey);
-		} else {
-			responseWrapper = new NoSecretClientResponseWrapper(response);
-		}
-
-		if (!responseWrapper.hasMessageBody() || responseWrapper.hasEmptyMessageBody()) {
-			return null;
-		}
-		InputStream body = responseWrapper.getBody();
-		String readContent = IoUtil.read(body, StandardCharsets.UTF_8);
-
-		readContent = handlePostInterceptors(response.getHeaders(), readContent);
-		if (readContent == null) {
-			return null;
-		}
-		return getRes(readContent);
 	}
 
 	/**

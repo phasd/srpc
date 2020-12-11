@@ -55,7 +55,7 @@ public class RpcClientFactoryBean<T> implements FactoryBean<T>, InitializingBean
 				methodHandlerMap.put(method, rpcClientMethodHandler);
 			}
 		}
-		RpcClientTarget<T> rpcClientTarget = new RpcClientTarget<>(proxyInterface, rpcClient.baseUrl(), methodHandlerMap);
+		RpcClientTarget<T> rpcClientTarget = new RpcClientTarget<>(proxyInterface, rpcClient, methodHandlerMap);
 		RpcClientProxy<T> rpcClientProxy = new RpcClientProxy<>(rpcClientTarget);
 		return rpcClientProxy.getProxy(mode);
 	}

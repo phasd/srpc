@@ -1,14 +1,16 @@
 package com.github.phasd.srpc.starter;
 
+import com.github.phasd.srpc.core.rpc.HttpClientUtils;
 import com.github.phasd.srpc.core.rpc.SimpleRpc;
 import com.github.phasd.srpc.core.rpc.SimpleRpcConfigurationProperties;
-import com.github.phasd.srpc.core.rpc.mvc.EncryptFromFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * SimpleAutoConfiguration
@@ -25,16 +27,15 @@ public class SimpleAutoConfiguration {
 	private SimpleRpcConfigurationProperties rpcConfig;
 
 	@Bean
-	public FilterRegistrationBean<EncryptFromFilter> encryptFormFilter() {
-		FilterRegistrationBean<EncryptFromFilter> filterRegistrationBean = new FilterRegistrationBean<>();
-		filterRegistrationBean.setFilter(new EncryptFromFilter(rpcConfig.getSecretKey()));
-		filterRegistrationBean.addUrlPatterns("/*");
-		filterRegistrationBean.setName("EncryptFromFilter");
-		return filterRegistrationBean;
+	@LoadBalanced
+	public RestTemplate restTemplate() {
+		HttpComponentsClientHttpRequestFactory httpRequestFactory =
+				new HttpComponentsClientHttpRequestFactory(HttpClientUtils.getHttpClient(rpcConfig));
+		return new RestTemplate(httpRequestFactory);
 	}
 
 	@Bean
-	public SimpleRpc simpleRpc() {
-		return new SimpleRpc(rpcConfig);
+	public SimpleRpc simpleRpc(RestTemplate restTemplate) {
+		return new SimpleRpc(rpcConfig, restTemplate);
 	}
 }
